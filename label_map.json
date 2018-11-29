@@ -1,0 +1,32 @@
+[
+    {
+        "id": 0,
+        "name": "ardido",
+        "weight": "0.5"
+    },
+    {
+        "id": 1,
+        "name": "brocado",
+        "weight": "0.3"
+    },
+    {
+        "id": 2,
+        "name": "normal",
+        "weight": "0.0"
+    },
+    {
+        "id": 3,
+        "name": "preto",
+        "weight": "1.0"
+    },
+    {
+        "id": 4,
+        "name": "pretoverde",
+        "weight": "0.5"
+    },
+    {
+        "id": 5,
+        "name": "verde",
+        "weight": "0.2"
+    }
+]
