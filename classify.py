@@ -7,7 +7,10 @@ import cv2 as cv
 from utils import config
 from utils import visualize
 
-export_dir = 'saved_models/simple_4_4/'
+model_id = 'CoffeeNet12'
+print('Using model', model_id)
+
+export_dir = 'saved_models/' + model_id + '/'
 
 imgs = []
 for addr in glob.glob('result/*.jpg'):

@@ -4,9 +4,12 @@ from utils import config
 from utils.tfrecords import get_data
 from utils import visualize
 
-export_dir = 'saved_models/simple_4_4/'
+model_id = 'CoffeeNet12'
+print('Using model', model_id)
 
-val_x, val_y = get_data(filenames=[config.VALIDATION_PATH], shuffle=False)
+export_dir = 'saved_models/' + model_id + '/'
+
+val_x, val_y = get_data([config.VALIDATION_PATH], shuffle=False)
 print('Validation data loaded.')
 
 with tf.Session(graph=tf.Graph()) as sess:

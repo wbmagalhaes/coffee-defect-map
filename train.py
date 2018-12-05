@@ -1,11 +1,15 @@
 import tensorflow as tf
 import numpy as np
+import time
 
 from utils import config
 from utils.tfrecords import get_data
 from utils.data_augment import aug_data
 
-import cnn_simple4_4 as cnn
+from utils.model import map_loss
+from utils.model import cnt_loss
+
+import cnn_simple as cnn
 
 training_dir = config.CHECKPOINT_DIR + cnn.model_id
 
@@ -31,13 +35,26 @@ with tf.name_scope('result'):
     count = tf.identity(tf.reduce_sum(y_pred, [1, 2], name='count'))
 
 with tf.name_scope('score'):
-    map_loss_op = cnn.map_loss(y_pred, y)
-    cnt_loss_op = cnn.cnt_loss(count, y)
+    map_loss_op = map_loss(y_pred, y)
+    cnt_loss_op = cnt_loss(count, y)
 
 tf.summary.scalar('score/map_loss', map_loss_op)
 tf.summary.scalar('score/cnt_loss', cnt_loss_op)
 
 global_step = tf.train.get_or_create_global_step()
+
+learning_rate = tf.train.exponential_decay(
+    learning_rate=config.LEARNING_RATE,
+    global_step=global_step,
+    decay_steps=500,
+    decay_rate=1,
+    staircase=False
+)
+
+tf.summary.scalar('learning_rate', learning_rate)
+
+step_per_sec = tf.placeholder(tf.float32)
+tf.summary.scalar('step_per_sec', step_per_sec)
 
 with tf.name_scope('optimizer'):
     optimizer = tf.train.AdamOptimizer(
@@ -61,21 +78,29 @@ with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as sess:
 
     tf.global_variables_initializer().run()
 
+    time_i = time.time()
+
     print('Starting train...')
     for epoch in range(config.EPOCHS + 1):
+        delta_time = time.time() - time_i
+        time_i = time.time()
+
+        if delta_time <= 0:
+            delta_time = 1
+        s_per_sec = 1.0 / delta_time
+
         p = np.random.permutation(len(train_x))[:config.BATCH_SIZE]
         batch_x = train_x[p]
         batch_y = train_y[p]
+        feed_dict = {x: batch_x, y: batch_y}
+        aug_x, aug_y = sess.run(augument_op, feed_dict=feed_dict)
 
-        aug_x, aug_y = sess.run(augument_op, feed_dict={
-                                x: batch_x, y: batch_y})
-
-        feed_dict = {x: aug_x, y: aug_y}
+        feed_dict = {x: aug_x, y: aug_y, step_per_sec: s_per_sec}
         summary, _ = sess.run([merged, train_map_op], feed_dict=feed_dict)
         train_writer.add_summary(summary, epoch)
 
         if epoch % 10 == 0:
-            feed_dict = {x: test_x, y: test_y}
+            feed_dict = {x: test_x, y: test_y, step_per_sec: s_per_sec}
             summary, map_loss, cnt_loss = sess.run(
                 [merged, map_loss_op, cnt_loss_op], feed_dict=feed_dict)
             test_writer.add_summary(summary, epoch)

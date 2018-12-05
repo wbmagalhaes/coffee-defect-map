@@ -112,3 +112,4 @@ result/*.xml
 saved_models
 training
 export_model_to_js.txt
+testes.txt

@@ -4,15 +4,20 @@ from tensorflow.python.saved_model.signature_def_utils_impl import predict_signa
 
 from utils import config
 
-export_dir = 'saved_models/simple_4_4/'
+model_id = 'CoffeeNet12'
+checkpoint = 11000
+
+print('Using model', model_id)
+
+export_dir = 'saved_models/' + model_id + '/'
+training_dir = config.CHECKPOINT_DIR + model_id
 
 clean_graph_def = None
+
 with tf.Session(graph=tf.Graph()) as sess:
-    checkpoint = tf.train.get_checkpoint_state(config.CHECKPOINT_DIR)
-    ckpt = checkpoint.model_checkpoint_path
-    
-    saver = tf.train.import_meta_graph(ckpt + '.meta', clear_devices=True)
-    saver.restore(sess, tf.train.latest_checkpoint(config.CHECKPOINT_DIR))
+    ckpt = '{}/model-{}.meta'.format(training_dir, checkpoint)
+    saver = tf.train.import_meta_graph(ckpt, clear_devices=True)
+    saver.restore(sess, tf.train.latest_checkpoint(training_dir))
     print('Model loaded.')
 
     graph_def = tf.get_default_graph().as_graph_def()
