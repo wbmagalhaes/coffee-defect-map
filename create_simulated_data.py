@@ -15,6 +15,7 @@ IMG_NUM = 2000
 COFFEE_SIZE = 16
 NUM_COFFEE = (config.IMG_SIZE / COFFEE_SIZE)
 
+
 def build_img(data):
     image = np.zeros((config.IMG_SIZE, config.IMG_SIZE, 3), np.uint8)
     density_map = np.zeros((config.IMG_SIZE, config.IMG_SIZE), np.float32)
@@ -22,7 +23,7 @@ def build_img(data):
     for i in range(len(data)):
         img = data[i]['img']
         label = data[i]['label']
-        
+
         xmin = int((i % NUM_COFFEE) * COFFEE_SIZE)
         ymin = int(math.floor(i / NUM_COFFEE) * COFFEE_SIZE)
         xmax = xmin + COFFEE_SIZE
@@ -32,29 +33,28 @@ def build_img(data):
         ypos = (ymax + ymin) / 2
         size = (xmax - xmin + ymax - ymin) / 4
 
-        image[ymin:ymax, xmin:xmax, :3] = cv.resize(img, (COFFEE_SIZE, COFFEE_SIZE), interpolation=cv.INTER_AREA)
-        density_map += gaussian_kernel((xpos, ypos), config.IMG_SIZE, A=label['weight'], sx=size, sy=size)
+        image[ymin:ymax, xmin:xmax, :3] = cv.resize(
+            img, (COFFEE_SIZE, COFFEE_SIZE), interpolation=cv.INTER_AREA)
+        density_map += gaussian_kernel((xpos, ypos), config.IMG_SIZE,
+                                       A=label['weight'], sx=size, sy=size)
 
     return image, density_map
+
 
 all_data = []
 for addr in glob.glob(config.IMGS_DIR + '*.xml'):
     _, _, imgs, labels = read_xml(addr)
     for i in range(len(imgs)):
-        data = { 'img': imgs[i], 'label': labels[i] }
+        data = {'img': imgs[i], 'label': labels[i]}
         all_data.append(data)
 
 print(len(all_data), 'Images loaded.')
-
-#shuffle(all_data)
-#img, dmap = build_img(all_data[0:int(NUM_COFFEE*NUM_COFFEE)])
-#visualize.show_img_result(img, dmap)
 
 imgs_data = []
 for i in range(IMG_NUM):
     shuffle(all_data)
     img, dmap = build_img(all_data[0:int(NUM_COFFEE*NUM_COFFEE)])
-    imgs_data.append({'img': img, 'map': dmap })
+    imgs_data.append({'img': img, 'map': dmap})
 
 train_count = int(config.TRAIN_PERCENTAGE * IMG_NUM)
 val_count = int((IMG_NUM - train_count) / 2)

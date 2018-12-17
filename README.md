@@ -1,1 +1,1 @@
-# coffee-defect-map
+# Coffee Defect Map

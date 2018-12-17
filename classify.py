@@ -7,7 +7,7 @@ import cv2 as cv
 from utils import config
 from utils import visualize
 
-model_id = 'CoffeeNet12'
+model_id = 'CoffeeUNet'
 print('Using model', model_id)
 
 export_dir = 'saved_models/' + model_id + '/'

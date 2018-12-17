@@ -24,7 +24,7 @@ def show_img_result(img, result):
     result_int = density_map.integrate(result)
     result_sum = density_map.sum(result)
     ax2 = fig.add_subplot(122)
-    ax2.title.set_text('Result: int:{:.2f} - sum:{:.2f}'.format(result_int, result_sum))
+    ax2.title.set_text('Result: int:{:.1f} - sum:{:.1f}'.format(result_int, result_sum))
     ax2.imshow(result, cmap="plasma")
 
     plt.show()
@@ -38,13 +38,13 @@ def show_img_dmap_result(img, dmap, result):
     result = map_to_2darray(result)
     result_int = density_map.sum(result)
     ax2 = fig.add_subplot(132)
-    ax2.title.set_text('Result: {:.2f}'.format(result_int))
+    ax2.title.set_text('Result: {:.1f}'.format(result_int))
     ax2.imshow(result, cmap="plasma")
 
     dmap = map_to_2darray(dmap)
-    dmap_int = density_map.sum(dmap)
+    dmap_int = int(density_map.sum(dmap))
     ax3 = fig.add_subplot(133)
-    ax3.title.set_text('Expected: {:.0f}'.format(dmap_int))
+    ax3.title.set_text('Expected: {}'.format(dmap_int))
     ax3.imshow(map_to_2darray(dmap), cmap="plasma")
 
     plt.show()

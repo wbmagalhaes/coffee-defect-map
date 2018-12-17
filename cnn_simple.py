@@ -1,6 +1,5 @@
 import tensorflow as tf
 
-from utils import config
 from utils import model as cnn
 
 model_id = 'Simple9'

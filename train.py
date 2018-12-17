@@ -9,7 +9,7 @@ from utils.data_augment import aug_data
 from utils.model import map_loss
 from utils.model import cnt_loss
 
-import cnn_simple as cnn
+import UNET as cnn
 
 training_dir = config.CHECKPOINT_DIR + cnn.model_id
 
@@ -32,7 +32,7 @@ with tf.name_scope('neural_net'):
 
 with tf.name_scope('result'):
     dmap = tf.identity(y_pred, name='dmap')
-    count = tf.identity(tf.reduce_sum(y_pred, [1, 2], name='count'))
+    count = tf.reduce_sum(y_pred, [1, 2], name='count')
 
 with tf.name_scope('score'):
     map_loss_op = map_loss(y_pred, y)
@@ -72,7 +72,7 @@ tf.summary.image('image/expected', y, max_outputs=1)
 merged = tf.summary.merge_all()
 saver = tf.train.Saver()
 
-with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as sess:
+with tf.Session() as sess:
     train_writer = tf.summary.FileWriter(training_dir + '/train', sess.graph)
     test_writer = tf.summary.FileWriter(training_dir + '/test')
 
@@ -100,12 +100,16 @@ with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as sess:
         train_writer.add_summary(summary, epoch)
 
         if epoch % 10 == 0:
-            feed_dict = {x: test_x, y: test_y, step_per_sec: s_per_sec}
+            p = np.random.permutation(len(test_x))[:config.BATCH_SIZE]
+            batch_x = test_x[p]
+            batch_y = test_y[p]
+            feed_dict = {x: batch_x, y: batch_y, step_per_sec: s_per_sec}
             summary, map_loss, cnt_loss = sess.run(
                 [merged, map_loss_op, cnt_loss_op], feed_dict=feed_dict)
+                
             test_writer.add_summary(summary, epoch)
-            print('Epoch: {} Map Loss: {:.5f} Count Loss: {:.5f}'.format(
-                epoch, map_loss, cnt_loss))
+            print('epoch: {} map loss: {:.3f} count error: {:.2f} s/step: {:3f}'.format(
+                epoch, map_loss, cnt_loss * 100, delta_time))
 
         if epoch % config.CHECKPOINT_INTERVAL == 0:
             saver.save(sess, training_dir + '/model', global_step=epoch)
