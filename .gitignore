@@ -106,7 +106,7 @@ venv.bak/
 data/*.tfrecord
 imgs/*.jpg
 imgs/*.xml
-js_model
+js_models
 result/*.jpg
 result/*.xml
 saved_models

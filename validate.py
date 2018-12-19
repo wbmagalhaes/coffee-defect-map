@@ -27,7 +27,7 @@ with tf.Session(graph=tf.Graph()) as sess:
     feed_dict = {
         'inputs/image_input:0': val_x  # ,
         # 'inputs/is_training:0': False
-    
+    }
     dmaps, counts = sess.run(
         ['result/dmap:0', 'result/count:0'], feed_dict=feed_dict)
 
