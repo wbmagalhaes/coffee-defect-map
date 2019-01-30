@@ -2,7 +2,8 @@ import tensorflow as tf
 
 from utils import model as cnn
 
-model_id = 'CoffeeUNet'
+model_id = 'CoffeeUNet18'
+
 
 def model(x):
     with tf.name_scope('INPUT'):

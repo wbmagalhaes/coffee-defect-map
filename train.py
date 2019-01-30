@@ -9,7 +9,7 @@ from utils.data_augment import aug_data
 from utils.model import map_loss
 from utils.model import cnt_loss
 
-import UNET as cnn
+import CoffeeUNet18 as cnn
 
 training_dir = config.CHECKPOINT_DIR + cnn.model_id
 
@@ -106,7 +106,7 @@ with tf.Session() as sess:
             feed_dict = {x: batch_x, y: batch_y, step_per_sec: s_per_sec}
             summary, map_loss, cnt_loss = sess.run(
                 [merged, map_loss_op, cnt_loss_op], feed_dict=feed_dict)
-                
+
             test_writer.add_summary(summary, epoch)
             print('epoch: {} map loss: {:.3f} count error: {:.2f} s/step: {:3f}'.format(
                 epoch, map_loss, cnt_loss * 100, delta_time))

@@ -2,7 +2,7 @@ import tensorflow as tf
 
 from utils import model as cnn
 
-model_id = 'Simple9'
+model_id = 'Simple8'
 
 
 def model(x):

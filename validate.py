@@ -7,7 +7,7 @@ from utils import config
 from utils.tfrecords import get_data
 from utils import visualize
 
-model_id = 'CoffeeUNet'
+model_id = 'CoffeeUNet18'
 print('Using model', model_id)
 
 export_dir = 'saved_models/' + model_id + '/'
