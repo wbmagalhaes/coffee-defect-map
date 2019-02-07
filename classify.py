@@ -39,6 +39,10 @@ with tf.Session(graph=tf.Graph()) as sess:
     dmaps, counts = sess.run(
         ['result/dmap:0', 'result/count:0'], feed_dict=feed_dict)
 
+    print(sum(counts[0:24]))
+    print(sum(counts[24:48]))
+    print(sum(counts[48:72]))
+
     print('Showing predictions.')
     for i in range(len(imgs)):
         visualize.show_img_result(imgs[i], dmaps[i])

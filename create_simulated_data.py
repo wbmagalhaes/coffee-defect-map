@@ -13,8 +13,25 @@ from random import shuffle
 IMG_NUM = 2000
 
 COFFEE_SIZE = 16
-NUM_COFFEE = (config.IMG_SIZE / COFFEE_SIZE)
+NUM_COFFEE = int(config.IMG_SIZE / COFFEE_SIZE)
 
+# image = np.zeros((config.IMG_SIZE, config.IMG_SIZE, 3), np.uint8)
+# density_map = np.zeros((config.IMG_SIZE, config.IMG_SIZE), np.float32)
+# for i in range(NUM_COFFEE * NUM_COFFEE):
+#     xmin = int((i % NUM_COFFEE) * COFFEE_SIZE)
+#     ymin = int(math.floor(i / NUM_COFFEE) * COFFEE_SIZE)
+#     xmax = xmin + COFFEE_SIZE
+#     ymax = ymin + COFFEE_SIZE
+
+#     xpos = (xmax + xmin) / 2
+#     ypos = (ymax + ymin) / 2
+    
+#     density_map += gaussian_kernel((xpos, ypos), config.IMG_SIZE,
+#                                        A=10, sx=COFFEE_SIZE/4, sy=COFFEE_SIZE/4)
+
+# visualize.show_img_result(image, density_map)
+
+# exit()
 
 def build_img(data):
     image = np.zeros((config.IMG_SIZE, config.IMG_SIZE, 3), np.uint8)
@@ -31,12 +48,11 @@ def build_img(data):
 
         xpos = (xmax + xmin) / 2
         ypos = (ymax + ymin) / 2
-        size = (xmax - xmin + ymax - ymin) / 4
 
         image[ymin:ymax, xmin:xmax, :3] = cv.resize(
             img, (COFFEE_SIZE, COFFEE_SIZE), interpolation=cv.INTER_AREA)
         density_map += gaussian_kernel((xpos, ypos), config.IMG_SIZE,
-                                       A=label['weight'], sx=size, sy=size)
+                                       A=label['weight']*100, sx=COFFEE_SIZE/4, sy=COFFEE_SIZE/4)
 
     return image, density_map
 
@@ -52,6 +68,7 @@ print(len(all_data), 'Images loaded.')
 
 imgs_data = []
 for i in range(IMG_NUM):
+    print(i)
     shuffle(all_data)
     img, dmap = build_img(all_data[0:int(NUM_COFFEE*NUM_COFFEE)])
     imgs_data.append({'img': img, 'map': dmap})

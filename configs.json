@@ -8,14 +8,14 @@
         "image resize": 128,
         "train percentage": 0.80,
 
-        "learning rate": 2E-4,
+        "learning rate": 2E-6,
 		"decay steps": 2000,
 		"decay rate": 0.90,
 		
         "dropout": 0.2,
 		
         "max epochs": 100000,
-        "batch size": 64,
+        "batch size": 32,
 		
         "checkpoint interval": 250,
         "checkpoint dir": "training/"

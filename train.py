@@ -46,8 +46,8 @@ global_step = tf.train.get_or_create_global_step()
 learning_rate = tf.train.exponential_decay(
     learning_rate=config.LEARNING_RATE,
     global_step=global_step,
-    decay_steps=500,
-    decay_rate=1,
+    decay_steps=5000,
+    decay_rate=0.90,
     staircase=False
 )
 
@@ -108,7 +108,7 @@ with tf.Session() as sess:
                 [merged, map_loss_op, cnt_loss_op], feed_dict=feed_dict)
 
             test_writer.add_summary(summary, epoch)
-            print('epoch: {} map loss: {:.3f} count error: {:.2f} s/step: {:3f}'.format(
+            print('epoch: %i map loss: %.3f count error: %.2f s/step: %3f' % (
                 epoch, map_loss, cnt_loss * 100, delta_time))
 
         if epoch % config.CHECKPOINT_INTERVAL == 0:
