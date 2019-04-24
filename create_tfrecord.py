@@ -1,21 +1,24 @@
 import glob
 import numpy as np
+import cv2 as cv
 
 from utils import config
 from utils.tfrecords import write_tfrecords
-from utils.data_reader import read_xml
-from utils.density_map import gaussian_kernel
+from utils.data_reader import read_xml, generate_dmap
 from random import shuffle
 
-imgs_data = []
-for addr in glob.glob(config.IMGS_DIR + '*.xml'):
-    _, img, _, labels = read_xml(addr)
-    
-    dmap = np.zeros((config.IMG_SIZE, config.IMG_SIZE), np.float32)
-    for label in labels:
-        dmap += gaussian_kernel((label['xpos'], label['ypos']), config.IMG_SIZE, A=label['weight'],sx=label['size'],sy=label['size'])
+def create_data(addr):
+    _, img, labels = read_xml(addr)
 
-    imgs_data.append({'img': img, 'map': dmap })
+    scale = 8
+    img = cv.resize(src=img, dsize=None, fx=1/scale, fy=1/scale, interpolation=cv.INTER_AREA)
+
+    dmap = generate_dmap(img, labels)
+    return { 'img': img, 'map': dmap }
+
+
+addrs = glob.glob(config.IMGS_DIR + '*.xml')
+imgs_data = [create_data(addr) for addr in addrs]
 
 shuffle(imgs_data)
 img_count = len(imgs_data)

@@ -20,12 +20,17 @@ with tf.name_scope('dataset_load'):
     test_x, test_y = get_data(filenames=[config.TESTING_PATH], shuffle=True)
 
 with tf.name_scope('inputs'):
+    orig_x = tf.placeholder(
+        tf.uint8, [None, None, None, 3])
+    orig_y = tf.placeholder(
+        tf.float32, [None, None, None, 1])
+
+    augument_op = aug_data(orig_x, orig_y)
+
     x = tf.placeholder(
-        tf.uint8, [None, config.IMG_SIZE, config.IMG_SIZE, 3], name='image_input')
+        tf.float32, [None, config.IMG_SIZE, config.IMG_SIZE, 3], name='image_input')
     y = tf.placeholder(
         tf.float32, [None, config.IMG_SIZE, config.IMG_SIZE, 1], name='label_input')
-
-    augument_op = aug_data(x, y)
 
 with tf.name_scope('neural_net'):
     y_pred = cnn.model(x)
@@ -46,8 +51,8 @@ global_step = tf.train.get_or_create_global_step()
 learning_rate = tf.train.exponential_decay(
     learning_rate=config.LEARNING_RATE,
     global_step=global_step,
-    decay_steps=5000,
-    decay_rate=0.90,
+    decay_steps=3000,
+    decay_rate=1, # 0.96,
     staircase=False
 )
 
@@ -65,9 +70,9 @@ with tf.name_scope('optimizer'):
     train_cnt_op = optimizer.minimize(
         cnt_loss_op, global_step=global_step, name='train_cnt')
 
-tf.summary.image('image/_in', x, max_outputs=1)
-tf.summary.image('image/_out', y_pred, max_outputs=1)
-tf.summary.image('image/expected', y, max_outputs=1)
+tf.summary.image('im/_in', x, max_outputs=1)
+tf.summary.image('im/_out', y_pred, max_outputs=1)
+tf.summary.image('im/expected', y, max_outputs=1)
 
 merged = tf.summary.merge_all()
 saver = tf.train.Saver()
@@ -92,7 +97,8 @@ with tf.Session() as sess:
         p = np.random.permutation(len(train_x))[:config.BATCH_SIZE]
         batch_x = train_x[p]
         batch_y = train_y[p]
-        feed_dict = {x: batch_x, y: batch_y}
+
+        feed_dict = {orig_x: batch_x, orig_y: batch_y}
         aug_x, aug_y = sess.run(augument_op, feed_dict=feed_dict)
 
         feed_dict = {x: aug_x, y: aug_y, step_per_sec: s_per_sec}
@@ -103,12 +109,16 @@ with tf.Session() as sess:
             p = np.random.permutation(len(test_x))[:config.BATCH_SIZE]
             batch_x = test_x[p]
             batch_y = test_y[p]
-            feed_dict = {x: batch_x, y: batch_y, step_per_sec: s_per_sec}
+            
+            feed_dict = {orig_x: batch_x, orig_y: batch_y}
+            aug_x, aug_y = sess.run(augument_op, feed_dict=feed_dict)
+
+            feed_dict = {x: aug_x, y: aug_y, step_per_sec: s_per_sec}
             summary, map_loss, cnt_loss = sess.run(
                 [merged, map_loss_op, cnt_loss_op], feed_dict=feed_dict)
 
             test_writer.add_summary(summary, epoch)
-            print('epoch: %i map loss: %.3f count error: %.2f s/step: %3f' % (
+            print('epoch: %i map loss: %.3f count error: %.2f s/step: %.3f' % (
                 epoch, map_loss, cnt_loss * 100, delta_time))
 
         if epoch % config.CHECKPOINT_INTERVAL == 0:

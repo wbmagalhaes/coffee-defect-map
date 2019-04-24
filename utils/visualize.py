@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+from sklearn.preprocessing import normalize
+
 from utils import density_map
 
 def map_to_2darray(dmap):
@@ -18,6 +20,10 @@ def show_img_result(img, result):
     fig = plt.figure()
     ax1 = fig.add_subplot(121)
     ax1.title.set_text('Img')
+    
+    print(np.max(img))
+    print(np.min(img))
+    #img = normalize(img)
     ax1.imshow(img)
     
     result = map_to_2darray(result)
@@ -29,7 +35,7 @@ def show_img_result(img, result):
 
     plt.show()
     
-def show_img_dmap_result(img, dmap, result):
+def show_img_dmap_result(img, real_dmap, result):
     fig = plt.figure()
     ax1 = fig.add_subplot(131)
     ax1.title.set_text('Img')
@@ -41,10 +47,10 @@ def show_img_dmap_result(img, dmap, result):
     ax2.title.set_text('Result: {:.1f}'.format(result_int))
     ax2.imshow(result, cmap="plasma")
 
-    dmap = map_to_2darray(dmap)
-    dmap_int = int(density_map.sum(dmap))
+    real_dmap = map_to_2darray(real_dmap)
+    dmap_int = int(density_map.sum(real_dmap))
     ax3 = fig.add_subplot(133)
     ax3.title.set_text('Expected: {}'.format(dmap_int))
-    ax3.imshow(map_to_2darray(dmap), cmap="plasma")
+    ax3.imshow(real_dmap, cmap="plasma")
 
     plt.show()

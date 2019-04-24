@@ -5,7 +5,8 @@ from utils import labelmap
 
 n_layer = 0
 
-initializer = tf.initializers.he_uniform()
+kernel_initializer = tf.initializers.he_uniform()
+bias_initializer = tf.initializers.zeros()
 
 
 def conv2d(x, w, k, s, activation=tf.nn.relu):
@@ -15,8 +16,15 @@ def conv2d(x, w, k, s, activation=tf.nn.relu):
 
     with tf.name_scope(name):
         out = tf.layers.conv2d(
-            inputs=x, filters=w, kernel_size=k, strides=s, activation=activation,
-            kernel_initializer=initializer, bias_initializer=initializer, padding='SAME', name=name)
+            inputs=x,
+            filters=w,
+            kernel_size=k,
+            strides=s,
+            activation=activation,
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
+            padding='SAME',
+            name=name)
 
     print(name, out.shape)
     return out
@@ -29,8 +37,15 @@ def conv2d_t(x, w, k, s, activation=tf.nn.relu):
 
     with tf.name_scope(name):
         out = tf.layers.conv2d_transpose(
-            inputs=x, filters=w, kernel_size=k, strides=s, activation=activation,
-            kernel_initializer=initializer, bias_initializer=initializer, padding='SAME', name=name)
+            inputs=x,
+            filters=w,
+            kernel_size=k,
+            strides=s,
+            activation=activation,
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
+            padding='SAME',
+            name=name)
 
     print(name, out.shape)
     return out
@@ -42,7 +57,11 @@ def maxpool(x, k, s):
 
     with tf.name_scope(name):
         out = tf.layers.max_pooling2d(
-            inputs=x, pool_size=k, strides=s, padding='SAME', name=name)
+            inputs=x,
+            pool_size=k,
+            strides=s,
+            padding='SAME',
+            name=name)
 
     print(name, out.shape)
     return out
@@ -55,8 +74,12 @@ def dense(x, w, activation=tf.nn.relu):
 
     with tf.name_scope(name):
         out = tf.layers.dense(
-            inputs=x, units=w, activation=activation,
-            kernel_initializer=initializer, bias_initializer=initializer, name=name)
+            inputs=x,
+            units=w,
+            activation=activation,
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
+            name=name)
 
     print(name, out.shape)
     return out

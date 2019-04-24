@@ -9,23 +9,48 @@
         "name": "brocado",
         "weight": "0.333"
     },
-    {
+	    {
         "id": 2,
-        "name": "normal",
-        "weight": "0.0"
+        "name": "chocho",
+        "weight": "0.2"
     },
     {
         "id": 3,
-        "name": "preto",
-        "weight": "1.0"
+        "name": "coco",
+        "weight": "1"
     },
     {
         "id": 4,
+        "name": "concha",
+        "weight": "0.333"
+    },
+	    {
+        "id": 5,
+        "name": "marinheiro",
+        "weight": "0.5"
+    },
+    {
+        "id": 6,
+        "name": "normal",
+        "weight": "0"
+    },
+    {
+        "id": 7,
+        "name": "preto",
+        "weight": "1"
+    },
+    {
+        "id": 8,
         "name": "pretoverde",
         "weight": "0.5"
     },
     {
-        "id": 5,
+        "id": 9,
+        "name": "quebrado",
+        "weight": "0.2"
+    },
+    {
+        "id": 10,
         "name": "verde",
         "weight": "0.2"
     }

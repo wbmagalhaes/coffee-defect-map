@@ -4,8 +4,6 @@ import sys
 import os
 import cv2 as cv
 
-from utils import config
-
 # int64 is used for numeric values
 def int64_feature(value):
     return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
@@ -31,9 +29,12 @@ def write_tfrecords(filepath, imgs_data):
     for img_data in imgs_data:
         img = img_data['img']
         dmap = img_data['map']
-        
+        h, w, _ = img.shape
+
         # Create an example protocol buffer
         example = tf.train.Example(features=tf.train.Features(feature={
+          'height': int64_feature(h),
+          'width': int64_feature(w),
           'img': bytes_feature(tf.compat.as_bytes(img.tostring())),
           'map': bytes_feature(tf.compat.as_bytes(dmap.tostring())),
         }))
@@ -50,15 +51,19 @@ def get_dataset(filenames, batch_size=10000, shuffle=True):
     
     def parser(serialized_example):
         features = tf.parse_single_example(serialized_example, features={
-            'img': tf.FixedLenFeature([], tf.string),
-            'map': tf.FixedLenFeature([], tf.string),
+            'height': tf.FixedLenFeature(shape=(1), dtype=tf.int64),
+            'width': tf.FixedLenFeature(shape=(1), dtype=tf.int64),
+            'img': tf.FixedLenFeature(shape=(1), dtype=tf.string),
+            'map': tf.FixedLenFeature(shape=(1), dtype=tf.string),
         })
-        
+
+        height = tf.cast(features['height'], tf.int64)[0]
+        width = tf.cast(features['width'], tf.int64)[0]
         image = tf.decode_raw(features['img'], tf.uint8)
         dmap = tf.decode_raw(features['map'], tf.float32)
-        
-        image = tf.reshape(image, (config.IMG_SIZE, config.IMG_SIZE, 3), name="image")
-        dmap = tf.reshape(dmap, (config.IMG_SIZE, config.IMG_SIZE, 1), name="dmap")
+
+        image = tf.reshape(image, (height, width, 3), name="image")
+        dmap = tf.reshape(dmap, (height, width, 1), name="dmap")
         
         return image, dmap
     

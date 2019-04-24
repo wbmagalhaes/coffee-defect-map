@@ -4,8 +4,8 @@ from tensorflow.python.saved_model.signature_def_utils_impl import predict_signa
 
 from utils import config
 
-model_id = 'CoffeeUNet18'
-checkpoint = 29750
+model_id = 'CoffeeUNet18_newimages'
+checkpoint = 500
 
 print('Using model', model_id)
 

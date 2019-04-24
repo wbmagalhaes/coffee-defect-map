@@ -109,6 +109,7 @@ imgs/*.xml
 js_models
 result/*.jpg
 result/*.xml
+result/*.json
 saved_models
 training
 export_model_to_js.txt

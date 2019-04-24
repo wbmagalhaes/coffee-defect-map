@@ -51,7 +51,7 @@ def build_img(data):
 
         image[ymin:ymax, xmin:xmax, :3] = cv.resize(
             img, (COFFEE_SIZE, COFFEE_SIZE), interpolation=cv.INTER_AREA)
-        density_map += gaussian_kernel((xpos, ypos), config.IMG_SIZE,
+        density_map += gaussian_kernel((xpos, ypos), (config.IMG_SIZE, config.IMG_SIZE),
                                        A=label['weight']*100, sx=COFFEE_SIZE/4, sy=COFFEE_SIZE/4)
 
     return image, density_map

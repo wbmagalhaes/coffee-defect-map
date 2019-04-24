@@ -11,7 +11,7 @@ def gaussian_kernel(center,
     """Calcula os pontos de um kernel Gaussiano com integral igual a 1.
     Args:
         center: ponto (x,y) no centro do kernel.
-        map_size: tamanho do kernel.
+        map_size: tamanho do mapa (w, h).
         A: amplitude do kernel. Valor padrão é 1.
         sx: sigma_x, espalhamento em x. Valor padrão é 1.
         sy: sigma_y, espalhamento em y. Valor padrão é 1.
@@ -20,7 +20,7 @@ def gaussian_kernel(center,
     Returns:
         2D numpy array com forma (map_size, map_size) com os valores calculados.
     """
-    x, y = np.meshgrid(np.arange(map_size), np.arange(map_size))
+    x, y = np.meshgrid(np.arange(map_size[1]), np.arange(map_size[0]))
     
     x0 = center[0]
     y0 = center[1]
