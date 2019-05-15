@@ -8,7 +8,7 @@
         "image resize": 128,
         "train percentage": 0.80,
 
-        "learning rate": 2E-6,
+        "learning rate": 2E-5,
 		"decay steps": 2000,
 		"decay rate": 0.90,
 		

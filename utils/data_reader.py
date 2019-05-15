@@ -17,7 +17,7 @@ def read_xml(addr):
     root = tree.getroot()
 
     filename = root.find('filename').text
-    print(filename)
+    print('Lendo imagem: ' + filename)
     
     dirname = os.path.dirname(addr)
     

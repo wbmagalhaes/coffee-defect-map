@@ -4,7 +4,7 @@ from skimage.feature import blob_log
 import matplotlib.pyplot as plt
 
 
-def select_in_map(image, dmap, min_size=5):
+def select_in_map(dmap, min_size=5):
     dmap /= dmap.max()
 
     shape = dmap.shape
@@ -16,20 +16,20 @@ def select_in_map(image, dmap, min_size=5):
 
     blobs_log = [blob for blob in blobs_log if blob[2] >= min_size]
 
-    _, axs = plt.subplots(nrows=1, ncols=2)
-    axs[0].imshow(image, interpolation=None)
-    axs[1].imshow(dmap, interpolation=None, cmap='jet')
+    # _, axs = plt.subplots(nrows=1, ncols=2)
+    # axs[0].imshow(image, interpolation=None)
+    # axs[1].imshow(dmap, interpolation=None, cmap='jet')
 
-    for blob in blobs_log:
-        y, x, r = blob
+    # for blob in blobs_log:
+    #     y, x, r = blob
 
-        x = x - r
-        y = y - r
-        w = 2 * r
+    #     x = x - r
+    #     y = y - r
+    #     w = 2 * r
 
-        c = plt.Rectangle((x, y), w, w, color='r', linewidth=1, fill=False)
-        axs[0].add_patch(c)
+    #     c = plt.Rectangle((x, y), w, w, color='r', linewidth=1, fill=False)
+    #     axs[0].add_patch(c)
 
-    plt.show()
+    # plt.show()
 
     return blobs_log

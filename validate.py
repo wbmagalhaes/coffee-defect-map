@@ -62,7 +62,9 @@ with tf.Session(graph=tf.Graph()) as sess:
     print('MRE: {:.2f}%'.format(mre * 100))
 
     for i in range(len(imgs)):
-        select_in_map(imgs[i], dmaps[i])
-        visualize.show_img_dmap_result(imgs[i], real_dmaps[i], dmaps[i])
+        blobs = select_in_map(imgs[i], dmaps[i])
+        print(len(blobs))
+
+        visualize.show_img_dmap_result(imgs[i], real_dmaps[i], dmaps[i], counts[i][0])
 
     print('Predictions completed.')

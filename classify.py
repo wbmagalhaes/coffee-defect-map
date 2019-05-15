@@ -19,7 +19,6 @@ print('Using model', model_id)
 
 export_dir = 'saved_models/' + model_id + '/'
 
-predictions = []
 selections = []
 reals = []
 
@@ -31,24 +30,30 @@ with tf.Session(graph=tf.Graph()) as sess:
     graph = tf.get_default_graph()
     print('Graph restored.')
 
-    addrs = glob.glob('C:/Users/Usuario/Desktop/coffee-defect-map/result/*.jpg')
+    print('Starting predictions...')
+
+    addrs = glob.glob(
+        'C:/Users/Usuario/Desktop/coffee-defect-map/result/*.jpg')
     for addr in addrs:
-        #filename, img, labels = read_xml(addr)
+        print('================')
+
+        _, _, labels = read_xml(addr[:-3] + "xml")
+        real_y = len(labels)
 
         filename = os.path.basename(addr)
         img = cv.imread(addr)
         img = cv.cvtColor(img, cv.COLOR_BGR2RGB).astype(np.uint8)
 
         scale = 8
-        img = cv.resize(src=img, dsize=None, fx=1/scale, fy=1/scale, interpolation=cv.INTER_AREA)
+        img = cv.resize(src=img, dsize=None, fx=1/scale,
+                        fy=1/scale, interpolation=cv.INTER_AREA)
 
         xoffset, yoffset, img_lines = cut_pieces_only_image(img)
         nx = len(img_lines[0])
         ny = len(img_lines)
 
-        img_pieces = np.reshape(img_lines, (nx * ny, config.IMG_SIZE, config.IMG_SIZE, 3))
-
-        print('Starting predictions.')
+        img_pieces = np.reshape(
+            img_lines, (nx * ny, config.IMG_SIZE, config.IMG_SIZE, 3))
 
         dmaps, counts = sess.run(
             ['result/dmap:0', 'result/count:0'],
@@ -67,23 +72,28 @@ with tf.Session(graph=tf.Graph()) as sess:
         blobs = select_in_map(fullimg, fullmap)
         create_json(addr, blobs, xoffset, yoffset, scale)
 
-        selected = len(blobs)
-        
-        # pred_y = np.sum(counts) / 100
-        # real_y = len(labels)
+        # visualize.show_selection_dmap(fullimg, fullmap, blobs, real_y)
 
-        # print('difference:', selected - real_y)
+        pred_y = len(blobs)
 
-        # predictions.append(pred_y)
-        # selections.append(selected)
-        # reals.append(real_y)
+        selections.append(pred_y)
+        reals.append(real_y)
+
+        print('Grãos: {}'.format(real_y))
+        print('Selecionados: {}'.format(pred_y))
+
+        error = abs(pred_y - real_y) / real_y
+        print('Erro: {:.2f}%'.format(error * 100))
+
+        print('================')
 
     print('Predictions completed.')
+
 
 def errors(p, r):
     p = np.array(p)
     r = np.array(r)
-    
+
     error = (p - r)
     mse = math.sqrt(np.mean(error ** 2))
     print('MSE: {:.2f}'.format(mse))
@@ -96,5 +106,4 @@ def errors(p, r):
     mre = np.mean(rel_error)
     print('MRE: {:.2f}%'.format(mre * 100))
 
-# errors(predictions, reals)
-# errors(selections, reals)
+errors(selections, reals)
