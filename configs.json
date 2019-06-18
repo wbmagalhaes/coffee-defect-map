@@ -1,22 +1,17 @@
 [
     {
-        "imgs dir": "imgs/",
+        "imgs dir": "imgs/webcam/",
         "training path": "data/train_data.tfrecord",
         "testing path": "data/test_data.tfrecord",
         "validation path": "data/val_data.tfrecord",
-
         "image resize": 128,
         "train percentage": 0.80,
-
-        "learning rate": 2E-5,
-		"decay steps": 2000,
-		"decay rate": 0.90,
-		
+        "learning rate": 2E-6,
+        "decay steps": 3000,
+        "decay rate": 1,
         "dropout": 0.2,
-		
         "max epochs": 100000,
-        "batch size": 32,
-		
+        "batch size": 16,
         "checkpoint interval": 250,
         "checkpoint dir": "training/"
     }

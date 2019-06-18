@@ -5,49 +5,41 @@ import numpy as np
 
 from utils import config
 from utils.tfrecords import get_data
-from utils.data_augment import aug_data
 from utils import visualize
 
 from utils.data_reader import cut_pieces, show_pieces
 
-from select_map import select_in_map
+from select_map import select_in_map, mark_in_img
 
-model_id = 'CoffeeUNet18_newimages'
+model_id = 'CoffeeUNet18'
 print('Using model', model_id)
 
 export_dir = 'saved_models/' + model_id + '/'
 
 val_x, val_y = get_data([config.VALIDATION_PATH], shuffle=False)
-# img_pieces, map_pieces = cut_pieces(val_x[0], val_y[0])
-# show_pieces(img_pieces, map_pieces)
 
 print('Validation data loaded.')
 
 with tf.Session(graph=tf.Graph()) as sess:
-    x = tf.placeholder(tf.uint8, [None, None, None, 3])
+    x = tf.placeholder(tf.uint8, [None, None, None, 1])
     y = tf.placeholder(tf.float32, [None, None, None, 1])
-
-    augument_op = aug_data(x, y)
 
     tf.global_variables_initializer().run()
 
-    imgs, real_dmaps = sess.run(augument_op, feed_dict={x: val_x, y: val_y})
-
     tf.saved_model.loader.load(sess, ["serve"], export_dir)
-
     graph = tf.get_default_graph()
     print('Graph restored.')
 
     print('Starting predictions.')
-    feed_dict = {
-        'inputs/image_input:0': imgs  # ,
-        # 'inputs/is_training:0': False
-    }
-    dmaps, counts = sess.run(
-        ['result/dmap:0', 'result/count:0'], feed_dict=feed_dict)
+    feed_dict = {'inputs/img_input:0': val_x}
+    dmaps, counts = sess.run(['result/dmap:0', 'result/count:0'], feed_dict=feed_dict)
 
-    pred_y = np.sum(counts, axis=1) / 100
-    real_y = np.sum(real_dmaps, axis=(1, 2, 3)) / 100
+    real_y = np.sum(val_y, axis=(1, 2, 3)) / 100
+
+    pred_y = []
+    for i in range(len(val_x)):
+        blobs = select_in_map(dmaps[i])
+        pred_y.append(len(blobs))
 
     error = (pred_y - real_y)
     mse = math.sqrt(np.mean(error ** 2))
@@ -61,10 +53,10 @@ with tf.Session(graph=tf.Graph()) as sess:
     mre = np.mean(rel_error)
     print('MRE: {:.2f}%'.format(mre * 100))
 
-    for i in range(len(imgs)):
-        blobs = select_in_map(imgs[i], dmaps[i])
-        print(len(blobs))
+    for i in range(len(val_x)):
+        img = np.dstack((val_x[i], val_x[i], val_x[i]))
 
-        visualize.show_img_dmap_result(imgs[i], real_dmaps[i], dmaps[i], counts[i][0])
+        blobs = mark_in_img(img, dmaps[i])
+        visualize.show_img_dmap_result(img, len(blobs), val_y[i], dmaps[i], pred_y[i])
 
     print('Predictions completed.')

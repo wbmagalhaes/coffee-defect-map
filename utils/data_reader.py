@@ -10,7 +10,87 @@ import matplotlib.pyplot as plt
 from utils import config
 from utils import labelmap
 
-from utils.density_map import gaussian_kernel
+
+def indent(elem, level=0, more_sibs=False):
+    i = "\n"
+    if level:
+        i += (level-1) * '\t'
+    num_kids = len(elem)
+    if num_kids:
+        if not elem.text or not elem.text.strip():
+            elem.text = i + "\t"
+            if level:
+                elem.text += '\t'
+        count = 0
+        for kid in elem:
+            indent(kid, level+1, count < num_kids - 1)
+            count += 1
+        if not elem.tail or not elem.tail.strip():
+            elem.tail = i
+            if more_sibs:
+                elem.tail += '\t'
+    else:
+        if level and (not elem.tail or not elem.tail.strip()):
+            elem.tail = i
+            if more_sibs:
+                elem.tail += '\t'
+
+
+def create_xml(addr, im, selections):
+    img_addr = addr[:-3] + 'jpg'
+    xml_addr = addr[:-3] + 'xml'
+
+    im_w, im_h, im_d = im.shape
+
+    annotation = ET.Element('annotation')
+    ET.SubElement(annotation, 'folder')
+    ET.SubElement(annotation, 'filename')
+    ET.SubElement(annotation, 'path')
+
+    source = ET.SubElement(annotation, 'source')
+    ET.SubElement(source, 'database').text = 'Unknown'
+
+    size = ET.SubElement(annotation, 'size')
+    ET.SubElement(size, 'width').text = str(im_w)
+    ET.SubElement(size, 'height').text = str(im_h)
+    ET.SubElement(size, 'depth').text = str(im_d)
+
+    ET.SubElement(annotation, 'segmented').text = '0'
+    tree = ET.ElementTree(annotation)
+    tree.write(xml_addr)
+
+    tree = ET.parse(xml_addr)
+    root = tree.getroot()
+
+    filename = os.path.basename(img_addr)
+    abs_path = os.path.abspath(img_addr)
+    splitted = os.path.split(abs_path)[0].split('\\')
+    last = splitted[len(splitted) - 1]
+
+    root.find('folder').text = last
+    root.find('filename').text = filename
+    root.find('path').text = abs_path
+
+    for selection in selections:
+        obj = ET.SubElement(root, 'object')
+
+        ET.SubElement(obj, 'name').text = 'cafe'
+        ET.SubElement(obj, 'pose').text = 'Unspecified'
+        ET.SubElement(obj, 'truncated').text = '0'
+        ET.SubElement(obj, 'difficult').text = '0'
+
+        bndbox = ET.SubElement(obj, 'bndbox')
+
+        xmin, ymin, xmax, ymax = selection
+
+        ET.SubElement(bndbox, 'xmin').text = str(xmin)
+        ET.SubElement(bndbox, 'ymin').text = str(ymin)
+        ET.SubElement(bndbox, 'xmax').text = str(xmax)
+        ET.SubElement(bndbox, 'ymax').text = str(ymax)
+
+    indent(root)
+    tree.write(xml_addr)
+
 
 def read_xml(addr):
     tree = ET.parse(addr)
@@ -18,13 +98,14 @@ def read_xml(addr):
 
     filename = root.find('filename').text
     print('Lendo imagem: ' + filename)
-    
-    dirname = os.path.dirname(addr)
-    
-    image = cv.imread(os.path.join(dirname, filename))
-    image = cv.cvtColor(image, cv.COLOR_BGR2RGB).astype(np.uint8)
 
-    ysize, xsize, _ = image.shape
+    dirname = os.path.dirname(addr)
+
+    image = cv.imread(os.path.join(dirname, filename))
+    image = cv.cvtColor(image, cv.COLOR_BGR2GRAY).astype(np.float32)
+    image /= 255.0
+    
+    ysize, xsize = image.shape
 
     labels = []
     for obj in root.findall('object'):
@@ -34,9 +115,9 @@ def read_xml(addr):
         xmax = float(bndbox.find('xmax').text) / xsize
         ymin = float(bndbox.find('ymin').text) / ysize
         ymax = float(bndbox.find('ymax').text) / ysize
-        
+
         weight = labelmap.weight_of_label(name)
-        
+
         label = {
             'xmin': xmin,
             'xmax': xmax,
@@ -44,44 +125,44 @@ def read_xml(addr):
             'ymax': ymax,
             'name': name,
             'weight': weight
-            }
-        
+        }
+
         labels.append(label)
-    
+
     return filename, image, labels
 
 
-def create_json(addr, blobs, xoffset, yoffset, scale):
+def create_json(addr, im, selections):
     img_addr = addr[:-3] + 'jpg'
     json_addr = addr[:-3] + 'json'
-
-    image = cv.imread(img_addr)
-    height, width, _ = image.shape
 
     filename = os.path.basename(img_addr)
     dirname = os.path.dirname(img_addr)
 
-    def blob_data(blob):
-        y, x, r = blob
+    im_w, im_h, im_d = im.shape
+
+    def blob_data(selection):
+        xmin, ymin, xmax, ymax = selection
 
         object_data = {
             "name": "unclassified",
             "weight": 0,
-            "xmin": int((x - r + yoffset) * scale),
-            "xmax": int((x + r + yoffset) * scale),
-            "ymin": int((y - r + xoffset) * scale),
-            "ymax": int((y + r + xoffset) * scale)
+            "xmin": xmin,
+            "xmax": xmax,
+            "ymin": ymin,
+            "ymax": ymax
         }
 
         return object_data
 
-    objects = [blob_data(blob) for blob in blobs]
+    objects = [blob_data(selection) for selection in selections]
 
     data = {
         "filename": filename,
         "dirname": dirname,
-        "width": width,
-        "height": height,
+        "width": im_w,
+        "height": im_h,
+        "depth": im_d,
         "objects": objects
     }
 
@@ -98,122 +179,8 @@ def read_json(addr):
         filename = data['filename']
 
         image = cv.imread(os.path.join(dirname, filename))
-        image = cv.cvtColor(image, cv.COLOR_BGR2RGB).astype(np.uint8)
+        image = cv.cvtColor(image, cv.COLOR_BGR2RGB).astype(np.float32) / 255
 
-        height, width, _ = image.shape
-
-        if width != data['width'] or height != data['height']:
-            print("Tamanho da imagem %s diferente do esperado." % filename)
-            exit()
-
-        labels =  data['objects']
+        labels = data['objects']
 
     return filename, image, labels
-
-
-def cut_pieces_only_image(img, nx=3, ny=2):
-    y_fullsize, x_fullsize, _ = img.shape
-    xsize = nx * config.IMG_SIZE
-    ysize = ny * config.IMG_SIZE
-
-    yoffset = int((x_fullsize - xsize) / 2)
-    xoffset = int((y_fullsize - ysize) / 2)
-
-    img_pieces = []
-    for i in range(ny):
-        img_line = []
-        for j in range(nx):
-            x1 = i * config.IMG_SIZE + xoffset
-            x2 = (i + 1) * config.IMG_SIZE + xoffset
-
-            y1 = j * config.IMG_SIZE + yoffset
-            y2 = (j + 1) * config.IMG_SIZE + yoffset
-
-            img_cut = img[x1:x2, y1:y2]
-            img_cut = cv.resize(src=img_cut, dsize=(config.IMG_SIZE, config.IMG_SIZE), interpolation=cv.INTER_AREA)
-
-            img_line.append(img_cut)
-
-        img_pieces.append(img_line)
-
-    return xoffset, yoffset, img_pieces
-
-
-def cut_pieces(img, dmap, nx=3, ny=2):
-    y_fullsize, x_fullsize, _ = img.shape
-    xsize = nx * config.IMG_SIZE
-    ysize = ny * config.IMG_SIZE
-
-    xoffset = int((y_fullsize - ysize) / 2)
-    yoffset = int((x_fullsize - xsize) / 2)
-
-    img_pieces = []
-    map_pieces = []
-    for i in range(ny):
-        img_line = []
-        map_line = []
-        for j in range(nx):
-            x1 = i * config.IMG_SIZE + xoffset
-            y1 = j * config.IMG_SIZE + yoffset
-            x2 = (i + 1) * config.IMG_SIZE + xoffset
-            y2 = (j + 1) * config.IMG_SIZE + yoffset
-
-            img_cut = img[x1:x2, y1:y2]
-            map_cut = dmap[x1:x2, y1:y2]
-
-            img_cut = cv.resize(src=img_cut, dsize=(config.IMG_SIZE, config.IMG_SIZE), interpolation=cv.INTER_AREA)
-            map_cut = cv.resize(src=map_cut, dsize=(config.IMG_SIZE, config.IMG_SIZE), interpolation=cv.INTER_AREA)
-
-            img_line.append(img_cut)
-            map_line.append(map_cut)
-
-        img_pieces.append(img_line)
-        map_pieces.append(map_line)
-
-    return img_pieces, map_pieces
-
-
-def show_pieces(img_pieces, map_pieces):
-    nx = len(img_pieces[0])
-    ny = len(img_pieces)
-
-    _, axs = plt.subplots(ny, nx, sharey=True)
-
-    for i in range(ny):
-        for j in range(nx):
-            img_cut = img_pieces[i][j]
-            map_cut = map_pieces[i][j]
-
-            axs[i, j].imshow(img_cut)
-            axs[i, j].imshow(map_cut, alpha=0.5, cmap="plasma")
-
-    plt.show()
-    exit()
-
-
-def generate_dmap(image, labels):
-    im_h, im_w, _ = image.shape
-    dmap = np.zeros((im_h, im_w), np.float32)
-
-    for label in labels:
-        #if label['name'] == 'normal':
-        #    continue
-
-        xmin = label['xmin'] * im_w
-        xmax = label['xmax'] * im_w
-        ymin = label['ymin'] * im_h
-        ymax = label['ymax'] * im_h
-
-        x = int(xmin + (xmax - xmin) / 2)
-        y = int(ymin + (ymax - ymin) / 2)
-
-        w = 100 # label['weight'] * 100
-
-        s = (xmax - xmin + ymax - ymin) / 8
-
-        dmap += gaussian_kernel(center=(x, y), map_size=(im_h, im_w), A=w, sx=s, sy=s)
-    
-    # img_pieces, map_pieces = cut_pieces(img, dmap)
-    # show_pieces(img_pieces, map_pieces)
-
-    return dmap

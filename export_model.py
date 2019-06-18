@@ -4,8 +4,8 @@ from tensorflow.python.saved_model.signature_def_utils_impl import predict_signa
 
 from utils import config
 
-model_id = 'CoffeeUNet18_newimages'
-checkpoint = 5500
+model_id = 'CoffeeUNet18'
+checkpoint = 4500
 
 print('Using model', model_id)
 
@@ -26,39 +26,43 @@ with tf.Session(graph=tf.Graph()) as sess:
     clean_graph_def = tf.graph_util.convert_variables_to_constants(
         sess=sess,
         input_graph_def=graph_def,
-        output_node_names=['result/dmap','result/count']
+        output_node_names=[
+            'result/dmap',
+            'result/count',
+            'result/maxima'
+        ]
     )
     print("%d ops in the final graph." % len(clean_graph_def.node))
 
 with tf.Session(graph=tf.Graph()) as sess:
     tf.import_graph_def(clean_graph_def, name='')
-    
+
     graph = tf.get_default_graph()
     graph_def = tf.get_default_graph().as_graph_def()
 
     for op in graph.get_operations():
         print(op.name)
-    
+
     print('Saving model.')
 
-    image = graph.get_tensor_by_name('inputs/image_input:0')
-    #is_training = graph.get_tensor_by_name('inputs/is_training:0')
-    
+    image = graph.get_tensor_by_name('inputs/img_input:0')
+
     dmap = graph.get_tensor_by_name('result/dmap:0')
     count = graph.get_tensor_by_name('result/count:0')
-    
+    maxima = graph.get_tensor_by_name('result/maxima:0')
+
     inputs = {
-        'image_input': image#,
-        #'is_training': is_training
-        }
-    
+        'img_input': image
+    }
+
     outputs = {
         'dmap': dmap,
-        'count': count
-        }
-    
+        'count': count,
+        'maxima': maxima
+    }
+
     signature = predict_signature_def(inputs=inputs, outputs=outputs)
-    
+
     builder = tf.saved_model.builder.SavedModelBuilder(export_dir)
     builder.add_meta_graph_and_variables(
         sess=sess,
@@ -67,7 +71,7 @@ with tf.Session(graph=tf.Graph()) as sess:
         clear_devices=True,
         strip_default_attrs=True
     )
-    
+
     builder.save()
-        
+
     print('Model saved.')

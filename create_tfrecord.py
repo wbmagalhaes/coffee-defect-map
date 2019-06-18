@@ -4,17 +4,46 @@ import cv2 as cv
 
 from utils import config
 from utils.tfrecords import write_tfrecords
-from utils.data_reader import read_xml, generate_dmap
+from utils.data_reader import read_xml
+from utils.density_map import gaussian_kernel
 from random import shuffle
+
+import matplotlib.pyplot as plt
+
+def generate_dmap(image, labels, scale):
+    im_h, im_w = image.shape
+    dmap = np.zeros((im_h, im_w), np.float32)
+
+    for label in labels:
+        xmin = label['xmin'] * im_w
+        xmax = label['xmax'] * im_w
+        ymin = label['ymin'] * im_h
+        ymax = label['ymax'] * im_h
+
+        x = int(xmin + (xmax - xmin) / 2)
+        y = int(ymin + (ymax - ymin) / 2)
+
+        w = 100 # label['weight'] * 100
+
+        s = ((xmax - xmin) + (ymax - ymin)) / 8
+        dmap += gaussian_kernel(center=(x, y), map_size=(im_h, im_w), A=w, sx=s, sy=s)
+
+    return dmap
+
 
 def create_data(addr):
     _, img, labels = read_xml(addr)
 
-    scale = 8
+    scale = 2 # 6
     img = cv.resize(src=img, dsize=None, fx=1/scale, fy=1/scale, interpolation=cv.INTER_AREA)
 
-    dmap = generate_dmap(img, labels)
-    return { 'img': img, 'map': dmap }
+    dmap = generate_dmap(img, labels, scale)
+
+    # plt.imshow(img, cmap="gray")
+    # plt.imshow(dmap, alpha=.5, cmap="jet")
+    # plt.show()
+
+    return {'img': img, 'map': dmap}
 
 
 addrs = glob.glob(config.IMGS_DIR + '*.xml')

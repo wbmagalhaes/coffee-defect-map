@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 from utils.data_reader import read_json
 
-addrs = glob.glob('C:/Users/Usuario/Desktop/coffee-defect-map/result/*.json')
+addrs = glob.glob('C:/Users/Usuario/Desktop/cafe_imgs/webcam_imgs/*.json')
 for addr in addrs:
     filename, img, labels = read_json(addr)
 

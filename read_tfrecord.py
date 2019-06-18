@@ -1,44 +1,28 @@
 import tensorflow as tf
 
-import utils.config as config
-from utils.tfrecords import get_data
-from utils.data_augment import aug_data
-from utils import visualize
-
-from utils import density_map
-from select_map import select_in_map
-
+import numpy as np
+import matplotlib.pyplot as plt
 import itertools
+
+from utils.tfrecords import get_data
+import utils.config as config
 
 data_x, data_y = get_data(filenames=[config.TESTING_PATH], shuffle=True)
 
-x = tf.placeholder(tf.uint8, [None, None, None, 3])
+x = tf.placeholder(tf.float32, [None, None, None, 1])
 y = tf.placeholder(tf.float32, [None, None, None, 1])
 
-augument_op = aug_data(x, y)
+img = tf.squeeze(x)
+dmap = tf.squeeze(y)
 
 with tf.Session() as sess:
     tf.global_variables_initializer().run()
-    imgs, dmaps = sess.run(augument_op, feed_dict={x: data_x, y: data_y})
-
-    print(len(imgs))
-
-    defects = []
-    for dmap in dmaps:
-        size = len(dmap)
-        dmap = dmap.reshape((size, size))
-        defects.append(density_map.sum(dmap))
-
-    max_d = int(max(defects))
-    min_d = int(min(defects))
-    med_d = int(sum(defects) / len(defects))
-
-    print("max:", max_d)
-    print("min:", min_d)
-    print("med:", med_d)
+    imgs, dmaps = sess.run([img, dmap], feed_dict={x: data_x, y: data_y})
 
     for img, dmap in itertools.zip_longest(imgs, dmaps):
-        select_in_map(img, dmap)
-        visualize.show_img_dmap_overlay(img, dmap)
+        count = int(np.sum(dmap))
 
-    exit()
+        plt.imshow(img, cmap="gray")
+        plt.imshow(dmap, alpha=.5, cmap="jet")
+        plt.title('Count: %i' % (count / 100))
+        plt.show()

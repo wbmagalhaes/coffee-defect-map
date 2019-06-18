@@ -32,8 +32,7 @@ with tf.Session(graph=tf.Graph()) as sess:
 
     print('Starting predictions...')
 
-    addrs = glob.glob(
-        'C:/Users/Usuario/Desktop/coffee-defect-map/result/*.jpg')
+    addrs = glob.glob('C:/Users/Usuario/Desktop/coffee-defect-map/result/*.jpg')
     for addr in addrs:
         print('================')
 
@@ -52,12 +51,9 @@ with tf.Session(graph=tf.Graph()) as sess:
         nx = len(img_lines[0])
         ny = len(img_lines)
 
-        img_pieces = np.reshape(
-            img_lines, (nx * ny, config.IMG_SIZE, config.IMG_SIZE, 3))
+        img_pieces = np.reshape(img_lines, (nx * ny, config.IMG_SIZE, config.IMG_SIZE, 3))
 
-        dmaps, counts = sess.run(
-            ['result/dmap:0', 'result/count:0'],
-            feed_dict={'inputs/image_input:0': img_pieces})
+        dmaps, counts = sess.run(['result/dmap:0', 'result/count:0'], feed_dict={'inputs/image_input:0': img_pieces})
 
         img_line1 = np.concatenate((img_pieces[:nx]), axis=1)
         img_line2 = np.concatenate((img_pieces[nx:]), axis=1)
@@ -70,7 +66,7 @@ with tf.Session(graph=tf.Graph()) as sess:
         fullmap = np.concatenate((map_line1, map_line2), axis=0)
 
         blobs = select_in_map(fullimg, fullmap)
-        create_json(addr, blobs, xoffset, yoffset, scale)
+        # create_json(addr, blobs, xoffset, yoffset, scale)
 
         # visualize.show_selection_dmap(fullimg, fullmap, blobs, real_y)
 
@@ -105,5 +101,6 @@ def errors(p, r):
     rel_error = abs_error / r
     mre = np.mean(rel_error)
     print('MRE: {:.2f}%'.format(mre * 100))
+
 
 errors(selections, reals)
