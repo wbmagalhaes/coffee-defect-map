@@ -10,7 +10,7 @@ from utils import config
 from utils import visualize
 
 from utils.density_map import gaussian_kernel
-from utils.data_reader import read_xml, create_json, cut_pieces_only_image, show_pieces
+from utils.data_reader import read_xml, create_json
 
 from select_map import select_in_map
 

@@ -15,14 +15,15 @@ training_dir = config.CHECKPOINT_DIR + model_id
 clean_graph_def = None
 
 with tf.Session(graph=tf.Graph()) as sess:
-    ckpt = '{}/model-{}.meta'.format(training_dir, checkpoint)
+    ckpt = f'{training_dir}/model-{checkpoint}.meta'
     saver = tf.train.import_meta_graph(ckpt, clear_devices=True)
     saver.restore(sess, tf.train.latest_checkpoint(training_dir))
     print('Model loaded.')
 
     graph_def = tf.get_default_graph().as_graph_def()
 
-    print("%d ops in the graph." % len(graph_def.node))
+    print(f"{len(graph_def.node)} ops in the graph.")
+
     clean_graph_def = tf.graph_util.convert_variables_to_constants(
         sess=sess,
         input_graph_def=graph_def,
@@ -32,7 +33,13 @@ with tf.Session(graph=tf.Graph()) as sess:
             'result/maxima'
         ]
     )
-    print("%d ops in the final graph." % len(clean_graph_def.node))
+
+    clean_graph_def = tf.graph_util.remove_training_nodes(
+        clean_graph_def,
+        protected_nodes=None
+    )
+
+    print(f"{len(clean_graph_def.node)} ops in the final graph.")
 
 with tf.Session(graph=tf.Graph()) as sess:
     tf.import_graph_def(clean_graph_def, name='')
