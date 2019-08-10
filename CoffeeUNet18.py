@@ -42,6 +42,6 @@ def model(x):
     x = cnn.conv2d(x, w=64, k=3, s=1)
     x = cnn.conv2d(x, w=64, k=3, s=1)
 
-    x = cnn.conv2d(x, w=1, k=1, s=1, activation=tf.nn.relu)
+    x = cnn.conv2d(x, w=1, k=1, s=1, activation=None)
 
     return x
