@@ -9,7 +9,7 @@
         "name": "brocado",
         "weight": "0.333"
     },
-	    {
+    {
         "id": 2,
         "name": "chocho",
         "weight": "0.2"
@@ -24,7 +24,7 @@
         "name": "concha",
         "weight": "0.333"
     },
-	    {
+    {
         "id": 5,
         "name": "marinheiro",
         "weight": "0.5"
