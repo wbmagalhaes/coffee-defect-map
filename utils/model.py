@@ -6,7 +6,9 @@ from utils import labelmap
 n_layer = 0
 
 kernel_initializer = None  # tf.initializers.he_uniform()
+kernel_regularizer = tf.contrib.layers.l2_regularizer(0.001)
 bias_initializer = tf.initializers.zeros()
+bias_regularizer = None
 
 
 def conv2d(x, w, k, s, activation=tf.nn.leaky_relu):
@@ -14,17 +16,18 @@ def conv2d(x, w, k, s, activation=tf.nn.leaky_relu):
     n_layer += 1
     name = 'CONV' + str(n_layer)
 
-    with tf.name_scope(name):
-        out = tf.layers.conv2d(
-            inputs=x,
-            filters=w,
-            kernel_size=k,
-            strides=s,
-            activation=activation,
-            kernel_initializer=kernel_initializer,
-            bias_initializer=bias_initializer,
-            padding='SAME',
-            name=name)
+    out = tf.layers.conv2d(
+        inputs=x,
+        filters=w,
+        kernel_size=k,
+        strides=s,
+        activation=activation,
+        kernel_initializer=kernel_initializer,
+        kernel_regularizer=kernel_regularizer,
+        bias_initializer=bias_initializer,
+        bias_regularizer=bias_regularizer,
+        padding='SAME',
+        name=name)
 
     print(name, out.shape)
     return out
@@ -35,17 +38,18 @@ def conv2d_t(x, w, k, s, activation=tf.nn.leaky_relu):
     n_layer += 1
     name = 'CONVT' + str(n_layer)
 
-    with tf.name_scope(name):
-        out = tf.layers.conv2d_transpose(
-            inputs=x,
-            filters=w,
-            kernel_size=k,
-            strides=s,
-            activation=activation,
-            kernel_initializer=kernel_initializer,
-            bias_initializer=bias_initializer,
-            padding='SAME',
-            name=name)
+    out = tf.layers.conv2d_transpose(
+        inputs=x,
+        filters=w,
+        kernel_size=k,
+        strides=s,
+        activation=activation,
+        kernel_initializer=kernel_initializer,
+        kernel_regularizer=kernel_regularizer,
+        bias_initializer=bias_initializer,
+        bias_regularizer=bias_regularizer,
+        padding='SAME',
+        name=name)
 
     print(name, out.shape)
     return out
@@ -55,13 +59,12 @@ def maxpool(x, k, s):
     global n_layer
     name = 'POOL' + str(n_layer)
 
-    with tf.name_scope(name):
-        out = tf.layers.max_pooling2d(
-            inputs=x,
-            pool_size=k,
-            strides=s,
-            padding='SAME',
-            name=name)
+    out = tf.layers.max_pooling2d(
+        inputs=x,
+        pool_size=k,
+        strides=s,
+        padding='SAME',
+        name=name)
 
     print(name, out.shape)
     return out
@@ -89,14 +92,15 @@ def dense(x, w, activation=tf.nn.leaky_relu):
     n_layer += 1
     name = 'DENSE' + str(n_layer)
 
-    with tf.name_scope(name):
-        out = tf.layers.dense(
-            inputs=x,
-            units=w,
-            activation=activation,
-            kernel_initializer=kernel_initializer,
-            bias_initializer=bias_initializer,
-            name=name)
+    out = tf.layers.dense(
+        inputs=x,
+        units=w,
+        activation=activation,
+        kernel_initializer=kernel_initializer,
+        kernel_regularizer=kernel_regularizer,
+        bias_initializer=bias_initializer,
+        bias_regularizer=bias_regularizer,
+        name=name)
 
     print(name, out.shape)
     return out
@@ -105,7 +109,9 @@ def dense(x, w, activation=tf.nn.leaky_relu):
 def map_loss(y_pred, y_true):
     abs_diff = tf.losses.absolute_difference(labels=y_true, predictions=y_pred)
     one_minus = tf.clip_by_value(tf.subtract(1.0, abs_diff), 1e-10, 1.0)
-    return -tf.log(one_minus)
+    l2_loss = tf.losses.get_regularization_loss()
+
+    return -tf.log(one_minus) + l2_loss
 
 
 def cnt_loss(count_pred, y_true):

@@ -64,11 +64,16 @@ with tf.name_scope('optimizer'):
     train_map_op = optimizer.minimize(map_loss_op, global_step=global_step, name='train_map')
     train_cnt_op = optimizer.minimize(cnt_loss_op, global_step=global_step, name='train_cnt')
 
+merged_train = tf.identity(tf.summary.merge_all(), name='merged_train_op')
+
 tf.summary.image('im/_in', x, max_outputs=1)
 tf.summary.image('im/_out', y_pred, max_outputs=1)
 tf.summary.image('im/expected', y, max_outputs=1)
 
-merged = tf.identity(tf.summary.merge_all(), name='merged_op')
+for var in tf.trainable_variables():
+    tf.summary.histogram(var.name, var)
+
+merged_test = tf.identity(tf.summary.merge_all(), name='merged_test_op')
 saver = tf.train.Saver()
 
 with tf.Session() as sess:
@@ -88,24 +93,20 @@ with tf.Session() as sess:
             delta_time = 1
         s_per_sec = 1.0 / delta_time
 
-        p = np.random.permutation(len(train_x))[:config.BATCH_SIZE]
-        batch_x = train_x[p]
-        batch_y = train_y[p]
+        lower_bound = (epoch * config.BATCH_SIZE) % len(train_x)
+        upper_bound = lower_bound + config.BATCH_SIZE
+        batch_x = train_x[lower_bound:upper_bound]
+        batch_y = train_y[lower_bound:upper_bound]
 
         feed_dict = {x: batch_x, y: batch_y}
         aug_x, aug_y = sess.run(augument_op, feed_dict=feed_dict)
 
-        # plt.imshow(np.squeeze(aug_x[0]), cmap="gray")
-        # plt.show()
-        # plt.imshow(np.squeeze(aug_y[0]), cmap="gray")
-        # plt.show()
-
         feed_dict = {x: aug_x, y: aug_y, step_per_sec: s_per_sec}
-        summary, _ = sess.run([merged, train_map_op], feed_dict=feed_dict)
+        summary, _ = sess.run([merged_train, train_map_op], feed_dict=feed_dict)
 
         train_writer.add_summary(summary, epoch)
 
-        if epoch % 10 == 0:
+        if epoch % 100 == 0:
             p = np.random.permutation(len(test_x))[:config.BATCH_SIZE]
             batch_x = test_x[p]
             batch_y = test_y[p]
@@ -114,17 +115,17 @@ with tf.Session() as sess:
             aug_x, aug_y = sess.run(augument_op, feed_dict=feed_dict)
 
             feed_dict = {x: aug_x, y: aug_y, step_per_sec: s_per_sec}
-            summary, map_loss, cnt_loss = sess.run([merged, map_loss_op, cnt_loss_op], feed_dict=feed_dict)
+            summary, map_loss, cnt_loss = sess.run([merged_test, map_loss_op, cnt_loss_op], feed_dict=feed_dict)
 
             test_writer.add_summary(summary, epoch)
-            print('epoch: {} map loss: {:.3f} count error: {:.2f} s/step: {:.3f}'.format(epoch, map_loss, cnt_loss * 100, delta_time))
+            print(f'epoch: {epoch} map loss: {map_loss:.3f} count error: {cnt_loss * 100:.2f} s/step: {delta_time:.3f}')
 
         if epoch % config.CHECKPOINT_INTERVAL == 0:
             saver.save(sess, training_dir + '/model', global_step=epoch)
-            saver.export_meta_graph(training_dir + '/model-{}.meta'.format(epoch))
+            saver.export_meta_graph(training_dir + f'/model-{epoch}.meta')
 
     saver.save(sess, training_dir + '/model', global_step=config.EPOCHS)
-    saver.export_meta_graph(training_dir + '/model-{}.meta'.format(config.EPOCHS))
+    saver.export_meta_graph(training_dir + f'/model-{config.EPOCHS}.meta')
 
     train_writer.close()
     test_writer.close()

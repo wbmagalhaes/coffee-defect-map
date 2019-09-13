@@ -8,6 +8,7 @@ model_id = 'CoffeeUNet18'
 
 def model(x):
     print("INPUT " + str(x.shape))
+    x = tf.image.per_image_standardization(x)
 
     x = cnn.conv2d(x, w=64, k=3, s=1)
     out1 = cnn.conv2d(x, w=64, k=3, s=1)
