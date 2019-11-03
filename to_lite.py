@@ -1,27 +1,23 @@
 import tensorflow as tf
 
-model_id = 'CoffeeUNet18'
-model_dir = 'saved_models/' + model_id
+from CoffeeUNet18 import create_model
 
-input_arrays = ["inputs/img_input"]
-output_arrays = ["result/dmap", 'result/maxima']
-input_shapes = {
-    "inputs/img_input": [1, 256, 256, 1]
-}
+weights_path = './results/coffeeunet18.h5'
+out_path = './results/coffeeunet18_v1.1.tflite'
 
-converter = tf.lite.TFLiteConverter.from_saved_model(
-    model_dir,
-    input_arrays=input_arrays,
-    input_shapes=input_shapes,
-    output_arrays=output_arrays,
-    signature_key="predict"
-)
+model = create_model()
+model.load_weights(weights_path)
 
-# converter.allow_custom_ops = True
-
+converter = tf.lite.TFLiteConverter.from_keras_model(model)
 tflite_model = converter.convert()
 
-print(converter._input_tensors)
-print(converter._output_tensors)
+interpreter = tf.lite.Interpreter(model_content=tflite_model)
+interpreter.allocate_tensors()
 
-open("coffeeunet18_v1_1.0.tflite", "wb").write(tflite_model)
+input_details = interpreter.get_input_details()
+output_details = interpreter.get_output_details()
+
+print(input_details)
+print(output_details)
+
+open(out_path, 'wb').write(tflite_model)

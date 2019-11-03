@@ -1,14 +1,12 @@
 import os
+import cv2
+import glob
 
 import numpy as np
-import cv2 as cv
 import xml.etree.ElementTree as ET
-import json
 
-import matplotlib.pyplot as plt
-
-from utils import config
-from utils import labelmap
+from utils.labelmap import defect_values
+from utils.density_map import gaussian_kernel
 
 
 def indent(elem, level=0, more_sibs=False):
@@ -36,9 +34,9 @@ def indent(elem, level=0, more_sibs=False):
                 elem.tail += '\t'
 
 
-def create_xml(addr, im, selections):
-    img_addr = addr[:-3] + 'jpg'
-    xml_addr = addr[:-3] + 'xml'
+def create_xml(xml_path, im, selections):
+    img_addr = xml_path[:-3] + 'jpg'
+    xml_addr = xml_path[:-3] + 'xml'
 
     im_w, im_h, im_d = im.shape
 
@@ -92,22 +90,21 @@ def create_xml(addr, im, selections):
     tree.write(xml_addr)
 
 
-def read_xml(addr):
-    tree = ET.parse(addr)
+def read_xml(xml_path):
+    tree = ET.parse(xml_path)
     root = tree.getroot()
 
     filename = root.find('filename').text
-    print('Lendo imagem: ' + filename)
 
-    dirname = os.path.dirname(addr)
+    dirname = os.path.dirname(xml_path)
 
-    image = cv.imread(os.path.join(dirname, filename))
-    image = cv.cvtColor(image, cv.COLOR_BGR2GRAY).astype(np.float32)
-    image /= 255.0
-    
+    img_path = os.path.join(dirname, filename)
+    image = cv2.imread(img_path)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
     ysize, xsize = image.shape
 
-    labels = []
+    bboxes = []
     for obj in root.findall('object'):
         name = obj.find('name').text
         bndbox = obj.find('bndbox')
@@ -116,9 +113,9 @@ def read_xml(addr):
         ymin = float(bndbox.find('ymin').text) / ysize
         ymax = float(bndbox.find('ymax').text) / ysize
 
-        weight = labelmap.weight_of_label(name)
+        weight = defect_values[name]
 
-        label = {
+        bbox = {
             'xmin': xmin,
             'xmax': xmax,
             'ymin': ymin,
@@ -127,60 +124,44 @@ def read_xml(addr):
             'weight': weight
         }
 
-        labels.append(label)
+        bboxes.append(bbox)
 
-    return filename, image, labels
-
-
-def create_json(addr, im, selections):
-    img_addr = addr[:-3] + 'jpg'
-    json_addr = addr[:-3] + 'json'
-
-    filename = os.path.basename(img_addr)
-    dirname = os.path.dirname(img_addr)
-
-    im_w, im_h, im_d = im.shape
-
-    def blob_data(selection):
-        xmin, ymin, xmax, ymax = selection
-
-        object_data = {
-            "name": "unclassified",
-            "weight": 0,
-            "xmin": xmin,
-            "xmax": xmax,
-            "ymin": ymin,
-            "ymax": ymax
-        }
-
-        return object_data
-
-    objects = [blob_data(selection) for selection in selections]
-
-    data = {
-        "filename": filename,
-        "dirname": dirname,
-        "width": im_w,
-        "height": im_h,
-        "depth": im_d,
-        "objects": objects
-    }
-
-    with open(json_addr, 'w') as outfile:
-        json.dump(data, outfile, indent=4, sort_keys=False)
+    return image, bboxes
 
 
-def read_json(addr):
-    with open(addr) as json_file:
-        print(addr)
-        data = json.load(json_file)
+def generate_dmap(image, bboxes):
+    im_h, im_w = image.shape
+    dmap = np.zeros((im_h, im_w), np.float32)
 
-        dirname = os.path.dirname(addr)
-        filename = data['filename']
+    for bbox in bboxes:
+        xmin = bbox['xmin'] * im_w
+        xmax = bbox['xmax'] * im_w
+        ymin = bbox['ymin'] * im_h
+        ymax = bbox['ymax'] * im_h
 
-        image = cv.imread(os.path.join(dirname, filename))
-        image = cv.cvtColor(image, cv.COLOR_BGR2RGB).astype(np.float32) / 255
+        x = int(xmin + (xmax - xmin) / 2)
+        y = int(ymin + (ymax - ymin) / 2)
 
-        labels = data['objects']
+        w = 100  # bbox['weight'] * 100
 
-    return filename, image, labels
+        s = ((xmax - xmin) + (ymax - ymin)) / 8
+        dmap += gaussian_kernel(center=(x, y), map_size=(im_h, im_w), A=w, sx=s, sy=s)
+
+    return dmap
+
+
+def load(dirs, scale=1/4):
+    data = []
+    for _dir in dirs:
+        addrs = glob.glob(os.path.join(_dir, '*.xml'))
+        for addr in addrs:
+            print(f'Loading data from: {addr}')
+
+            image, bboxes = read_xml(addr)
+            image = cv2.resize(src=image, dsize=None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
+
+            dmap = generate_dmap(image, bboxes)
+            data.append([image, dmap])
+
+    print(f'Data loaded. {len(data)} images.')
+    return data

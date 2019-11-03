@@ -103,14 +103,6 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-*.tfrecord
-*.jpg
-*.png
-*.xml
-*.json
-*.txt
-*.tflite
-
-js_models
-saved_models
-training
+data
+logs
+results

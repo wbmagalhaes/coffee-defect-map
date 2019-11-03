@@ -1,49 +1,25 @@
-import json
-from utils import config
+label_names = [
+    'ardido',
+    'brocado',
+    'chocho',
+    'coco',
+    'concha',
+    'marinheiro',
+    'normal',
+    'preto',
+    'quebrado',
+    'verde'
+]
 
-def load_labelmap(path):
-    with open(path) as data_file:
-        data_loaded = json.load(data_file)
-
-    labels = []
-    for label in data_loaded:
-        label_dict = {
-                'id': int(label['id']),
-                'name': str(label['name']),
-                'weight': float(label['weight'])
-                }
-        labels.append(label_dict)
-
-    print("Labels loaded.")
-    return labels
-
-def index_of_label(name):
-    for label in labels:
-        if label['name'] == name:
-            return label['id']
-
-    return -1
-
-def weight_of_label(name):
-    for label in labels:
-        if label['name'] == name:
-            return label['weight']
-
-    return 0
-
-def name_of_idx(idx):
-    for label in labels:
-        if label['id'] == idx:
-            return label['name']
-
-    return "none"
-
-def weight_of_idx(idx):
-    for label in labels:
-        if label['id'] == idx:
-            return label['weight']
-
-    return 0
-
-labels = load_labelmap('label_map.json')
-count = len(labels)
+defect_values = {
+    'ardido': 0.5,
+    'brocado': 0.333,
+    'chocho': 0.2,
+    'coco': 1,
+    'concha': 0.333,
+    'marinheiro': 0.5,
+    'normal': 0,
+    'preto': 1,
+    'quebrado': 0.2,
+    'verde': 0.2
+}

@@ -1,6 +1,7 @@
 import numpy as np
 from scipy import integrate as intg
 
+
 def gaussian_kernel(center,
                     map_size,
                     A=1,
@@ -16,21 +17,22 @@ def gaussian_kernel(center,
         sx: sigma_x, espalhamento em x. Valor padrão é 1.
         sy: sigma_y, espalhamento em y. Valor padrão é 1.
         theta: angulo de rotacao do kernel. Valor padrão é 0.
-        
+
     Returns:
         2D numpy array com forma (map_size, map_size) com os valores calculados.
     """
     x, y = np.meshgrid(np.arange(map_size[1]), np.arange(map_size[0]))
-    
+
     x0 = center[0]
     y0 = center[1]
-    
+
     a = np.cos(theta)**2/(2*sx**2) + np.sin(theta)**2/(2*sy**2)
     b = -np.sin(2*theta)/(4*sx**2) + np.sin(2*theta)/(4*sy**2)
     c = np.sin(theta)**2/(2*sx**2) + np.cos(theta)**2/(2*sy**2)
 
     z = A * np.exp(-(a*(x-x0)**2 + 2*b*(x-x0)*(y-y0) + c*(y-y0)**2))
     return z / (2*np.pi*sx*sy)
+
 
 def integrate(dmap):
     """Calcula a integral do mapa de densidade aplicando duas vezes o método dos trapézios.
@@ -43,8 +45,9 @@ def integrate(dmap):
     x = np.arange(size)
     y = np.arange(size)
     z = dmap[x][y]
-    
+
     return intg.trapz(intg.trapz(z, y), x)
+
 
 def sum(dmap):
     """Calcula a soma dos pontos do mapa de densidade.
