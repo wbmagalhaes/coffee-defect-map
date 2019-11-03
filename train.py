@@ -2,11 +2,9 @@ import tensorflow as tf
 
 import os
 
-from utils import tfrecords, augmentation, other, visualize
+from utils import tfrecords, augmentation, other, visualize, losses, metrics
 
-from CoffeeUNet18 import create_model
-
-model_name = 'CoffeeUNet18'
+from CoffeeUNet import create_model
 
 # Load train data
 train_dataset = tfrecords.read(['./data/data_train.tfrecord'])
@@ -20,22 +18,22 @@ test_dataset = test_dataset.map(other.normalize, num_parallel_calls=4)
 train_dataset = augmentation.apply(train_dataset)
 
 # Set batchs
-train_dataset = train_dataset.repeat().shuffle(buffer_size=5000).batch(16)
-test_dataset = test_dataset.repeat().shuffle(buffer_size=5000).batch(16)
+train_dataset = train_dataset.repeat().shuffle(buffer_size=400).batch(16)
+test_dataset = test_dataset.repeat().shuffle(buffer_size=400).batch(16)
 
 # Plot some images
-# visualize.plot_dataset(train_dataset)
-
+visualize.plot_dataset(train_dataset)
 
 # Define model
+model_name = 'CoffeeUNet18_2'
 model = create_model()
 model.compile(
     optimizer=tf.keras.optimizers.Adam(lr=1e-4),
     loss={
-        'map_output': 'mse',
+        'map_output': losses.JaccardDistance(smooth=100),
     },
     metrics={
-        'map_output': 'mean_squared_error'
+        'map_output': [metrics.IoU(smooth=1.), metrics.JaccardCoef()]
     }
 )
 model.summary()

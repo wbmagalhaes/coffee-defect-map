@@ -27,9 +27,9 @@ def conv2d_block(x, filters):
         bias_initializer=bias_initializer,
         activation=tf.keras.layers.LeakyReLU(alpha=leaky_relu_alpha),
         padding='same')(x)
-
     x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.Dropout(rate=drop_rate)(x)
+
+    # x = tf.keras.layers.Dropout(rate=drop_rate)(x)
 
     x = tf.keras.layers.Conv2D(
         filters=filters,
@@ -52,27 +52,24 @@ def create_model(
         output_activation='sigmoid'):
 
     image_input = tf.keras.Input(shape=input_shape, name='img_input')
-    x = image_input
-    print(x.shape)
+    x = tf.keras.layers.BatchNormalization()(image_input)
 
     down_layers = []
     for _ in range(num_layers):
         x = conv2d_block(x, filters=filters)
         down_layers.append(x)
         x = tf.keras.layers.MaxPooling2D((2, 2))(x)
-        print(x.shape)
 
         filters *= 2
 
     x = conv2d_block(x, filters=filters)
-    print(x.shape)
+    x = tf.keras.layers.Dropout(rate=drop_rate)(x)
 
     for conv in reversed(down_layers):
         filters //= 2
         x = upsample(x, filters)
         x = tf.keras.layers.concatenate([x, conv])
         x = conv2d_block(x, filters=filters)
-        print(x.shape)
 
     out = tf.keras.layers.Conv2D(
         filters=num_classes,
