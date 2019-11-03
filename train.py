@@ -33,7 +33,7 @@ model.compile(
         'map_output': losses.JaccardDistance(smooth=100),
     },
     metrics={
-        'map_output': [metrics.IoU(smooth=1.), metrics.JaccardCoef()]
+        'map_output': [metrics.IoU(smooth=1.)]
     }
 )
 model.summary()
