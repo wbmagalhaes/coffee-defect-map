@@ -30,7 +30,7 @@ model = create_model()
 model.compile(
     optimizer=tf.keras.optimizers.Adam(lr=1e-4),
     loss={
-        'map_output': losses.JaccardDistance(smooth=100),
+        'map_output': losses.JaccardDistance(smooth=100)
     },
     metrics={
         'map_output': [metrics.IoU(smooth=1.)]
