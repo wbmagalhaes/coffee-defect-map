@@ -25,7 +25,7 @@ test_dataset = test_dataset.repeat().shuffle(buffer_size=400).batch(16)
 visualize.plot_dataset(train_dataset)
 
 # Define model
-model_name = 'CoffeeUNet18_2'
+model_name = 'CoffeeUNet18'
 model = create_model()
 model.compile(
     optimizer=tf.keras.optimizers.Adam(lr=1e-4),
