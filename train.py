@@ -22,7 +22,7 @@ train_dataset = train_dataset.repeat().shuffle(buffer_size=400).batch(16)
 test_dataset = test_dataset.repeat().shuffle(buffer_size=400).batch(16)
 
 # Plot some images
-visualize.plot_dataset(train_dataset)
+# visualize.plot_dataset(train_dataset)
 
 # Define model
 model_name = 'CoffeeUNet18'
@@ -51,12 +51,12 @@ tb_callback = tf.keras.callbacks.TensorBoard(
 # Training
 history = model.fit(
     train_dataset,
-    steps_per_epoch=400,
-    epochs=5,
+    steps_per_epoch=20,
+    epochs=100,
     verbose=1,
     validation_data=test_dataset,
     validation_freq=1,
-    validation_steps=40,
+    validation_steps=5,
     callbacks=[tb_callback]
 )
 
