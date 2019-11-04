@@ -1,5 +1,7 @@
 import tensorflow as tf
 
+import random
+
 
 def normalize(x, y):
     x = tf.divide(x, 255.)
@@ -12,6 +14,8 @@ def clip01(x, y):
 
 
 def resize(x, y):
-    x = tf.image.resize(x, [128, 128])
-    y = tf.image.resize(y, [128, 128])
+    seed = int(random.random() * 1234)
+    x = tf.image.random_crop(x, size=[128, 128, 1], seed=seed)
+    y = tf.image.random_crop(y, size=[128, 128, 1], seed=seed)
+
     return x, y

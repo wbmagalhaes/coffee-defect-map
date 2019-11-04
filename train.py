@@ -53,7 +53,7 @@ tb_callback = tf.keras.callbacks.TensorBoard(
 history = model.fit(
     train_dataset,
     steps_per_epoch=20,
-    epochs=500,
+    epochs=400,
     verbose=1,
     validation_data=test_dataset,
     validation_freq=1,

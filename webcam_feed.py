@@ -32,10 +32,13 @@ while(1):
 
     result = model.predict(grey_image)
     result = np.squeeze(result[0])
+
+    result = np.where(result > 0.5, 1., 0.)
     result = np.stack([np.zeros_like(result), np.zeros_like(result), result], axis=-1)
     result = cv2.resize(src=result, dsize=(color_image.shape[0], color_image.shape[1]))
 
-    show = np.hstack([color_image, result])
+    show = color_image + result * RESULT_ALPHA
+    show = np.clip(show, 0, 1)
     cv2.imshow("Result", show)
 
     k = cv2.waitKey(30) & 0xff
