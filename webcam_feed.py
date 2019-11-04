@@ -15,8 +15,6 @@ video.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 video.set(cv2.CAP_PROP_FPS, 30)
 video.set(cv2.CAP_PROP_AUTOFOCUS, False)
 
-font = cv2.FONT_HERSHEY_SIMPLEX
-
 model = create_model()
 model.load_weights('./results/coffeeunet18.h5')
 

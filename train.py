@@ -61,5 +61,12 @@ history = model.fit(
     callbacks=[tb_callback]
 )
 
+# Save model
+model.save(
+    model,
+    filepath='./results/coffeeunet18.h5',
+    overwrite=True
+)
+
 # Save weights
-model.save_weights('./results/coffeeunet18.h5', overwrite=True)
+# model.save_weights('./results/coffeeunet18.h5', overwrite=True)
