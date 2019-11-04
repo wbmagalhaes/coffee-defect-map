@@ -8,6 +8,7 @@ def gaussian_kernel(center,
                     sx=1,
                     sy=1):
     """Calcula os pontos de um kernel Gaussiano com integral igual a 1.
+
     Args:
         center: ponto (x,y) no centro do kernel.
         map_size: tamanho do mapa (w, h).
@@ -43,6 +44,7 @@ def gaussian_kernel_theta(center,
                           theta=0,
                           ):
     """Calcula os pontos de um kernel Gaussiano com integral igual a 1.
+
     Args:
         center: ponto (x,y) no centro do kernel.
         map_size: tamanho do mapa (w, h).
@@ -85,8 +87,10 @@ def gaussian_kernel_theta(center,
 
 def integrate(dmap):
     """Calcula a integral do mapa de densidade aplicando duas vezes o método dos trapézios.
+
     Args:
         dmap: mapa de densidade a ser integrado.
+
     Returns:
         float com o resultado da integral dupla.
     """
@@ -100,6 +104,7 @@ def integrate(dmap):
 
 def sum(dmap):
     """Calcula a soma dos pontos do mapa de densidade.
+
     Args:
         dmap: mapa de densidade a ser somado.
 

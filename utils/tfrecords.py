@@ -33,14 +33,14 @@ def write(filename, data):
     writer = tf.data.experimental.TFRecordWriter(filename)
 
     def serialize_example(image, d_map):
-        h, w = image.shape
+        shape = image.shape
 
         image = tf.compat.as_bytes(image.tostring())
         d_map = tf.compat.as_bytes(d_map.tostring())
 
         feature = {
-            'im_h': int64_feature(h),
-            'im_w': int64_feature(w),
+            'im_h': int64_feature(shape[0]),
+            'im_w': int64_feature(shape[1]),
             'image': bytes_feature(image),
             'd_map': bytes_feature(d_map)
         }

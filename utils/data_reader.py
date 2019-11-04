@@ -100,18 +100,15 @@ def read_xml(xml_path):
 
     img_path = os.path.join(dirname, filename)
     image = cv2.imread(img_path)
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-    ysize, xsize = image.shape
 
     bboxes = []
     for obj in root.findall('object'):
         name = obj.find('name').text
         bndbox = obj.find('bndbox')
-        xmin = float(bndbox.find('xmin').text) / xsize
-        xmax = float(bndbox.find('xmax').text) / xsize
-        ymin = float(bndbox.find('ymin').text) / ysize
-        ymax = float(bndbox.find('ymax').text) / ysize
+        xmin = float(bndbox.find('xmin').text) / image.shape[1]
+        xmax = float(bndbox.find('xmax').text) / image.shape[1]
+        ymin = float(bndbox.find('ymin').text) / image.shape[0]
+        ymax = float(bndbox.find('ymax').text) / image.shape[0]
 
         weight = defect_values[name]
 
@@ -150,6 +147,21 @@ def generate_dmap(image, bboxes):
     return dmap
 
 
+def prepare_image(image, final_size):
+    scale = final_size / min(image.shape[0], image.shape[1])
+    return cv2.resize(src=image, dsize=None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
+
+
+def cut_image(image, channels=1):
+    cut = min(image.shape[0], image.shape[1])
+
+    dx = abs(cut - image.shape[1]) // 2
+    dy = abs(cut - image.shape[0]) // 2
+
+    image = image[dy:dy+cut, dx:dx+cut]
+    return np.reshape(image, (cut, cut, channels))
+
+
 def load(dirs, final_size=256):
     data = []
     for _dir in dirs:
@@ -159,19 +171,12 @@ def load(dirs, final_size=256):
 
             image, bboxes = read_xml(addr)
 
-            h, w = image.shape
-            scale = final_size / min(w, h)
-
-            image = cv2.resize(src=image, dsize=None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            image = prepare_image(image, final_size)
             dmap = generate_dmap(image, bboxes)
 
-            h, w = image.shape
-
-            dx = abs(final_size - w) // 2
-            dy = abs(final_size - h) // 2
-
-            image = image[dy:dy+final_size, dx:dx+final_size]
-            dmap = dmap[dy:dy+final_size, dx:dx+final_size]
+            image = cut_image(image)
+            dmap = cut_image(dmap)
 
             data.append([image, dmap])
 
@@ -188,19 +193,8 @@ def load_images(dirs, final_size=256):
             image = cv2.imread(addr)
             image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-            h, w = image.shape
-            scale = final_size / min(w, h)
-
-            image = cv2.resize(src=image, dsize=None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
-
-            h, w = image.shape
-
-            dx = abs(final_size - w) // 2
-            dy = abs(final_size - h) // 2
-
-            image = image[dy:dy+final_size, dx:dx+final_size]
-            image = np.reshape(image, (final_size, final_size, 1))
-
+            image = prepare_image(image, final_size)
+            image = cut_image(image)
             data.append(image)
 
     return data

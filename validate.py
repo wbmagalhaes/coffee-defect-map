@@ -14,4 +14,4 @@ model.load_weights('./results/coffeeunet18.h5')
 
 y_pred = model.predict(dataset.batch(32))
 
-visualize.plot_images(x_data[:8], y_true[:8], y_pred[:8])
+visualize.plot_images(x_data[:4], y_true[:4], y_pred[:4])
