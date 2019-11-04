@@ -160,10 +160,7 @@ def load(dirs, final_size=256):
             image, bboxes = read_xml(addr)
 
             h, w = image.shape
-            if (w < h):
-                scale = final_size / w
-            else:
-                scale = final_size / h
+            scale = final_size / min(w, h)
 
             image = cv2.resize(src=image, dsize=None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
             dmap = generate_dmap(image, bboxes)
@@ -177,5 +174,33 @@ def load(dirs, final_size=256):
             dmap = dmap[dy:dy+final_size, dx:dx+final_size]
 
             data.append([image, dmap])
+
+    return data
+
+
+def load_images(dirs, final_size=256):
+    data = []
+    for _dir in dirs:
+        addrs = glob.glob(os.path.join(_dir, '*.jpg'))
+        for addr in addrs:
+            print(f'Loading image: {addr}')
+
+            image = cv2.imread(addr)
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+            h, w = image.shape
+            scale = final_size / min(w, h)
+
+            image = cv2.resize(src=image, dsize=None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
+
+            h, w = image.shape
+
+            dx = abs(final_size - w) // 2
+            dy = abs(final_size - h) // 2
+
+            image = image[dy:dy+final_size, dx:dx+final_size]
+            image = np.reshape(image, (final_size, final_size, 1))
+
+            data.append(image)
 
     return data
