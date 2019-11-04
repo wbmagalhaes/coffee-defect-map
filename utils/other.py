@@ -13,4 +13,5 @@ def clip01(x, y):
 
 def resize(x, y):
     x = tf.image.resize(x, [128, 128])
+    y = tf.image.resize(y, [128, 128])
     return x, y
