@@ -5,7 +5,7 @@ from utils import tfrecords, other, visualize
 dataset = tfrecords.read(['./data/data_test.tfrecord'])
 dataset = dataset.map(other.resize).map(other.normalize)
 
-visualize.plot_dataset(dataset.batch(2))
+visualize.plot_dataset(dataset.batch(1))
 
 x_data, y_true = zip(*[data for data in dataset])
 

@@ -10,87 +10,6 @@ from utils.labelmap import defect_values
 from utils.density_map import gaussian_kernel
 
 
-def indent(elem, level=0, more_sibs=False):
-    i = "\n"
-    if level:
-        i += (level-1) * '\t'
-    num_kids = len(elem)
-    if num_kids:
-        if not elem.text or not elem.text.strip():
-            elem.text = i + "\t"
-            if level:
-                elem.text += '\t'
-        count = 0
-        for kid in elem:
-            indent(kid, level+1, count < num_kids - 1)
-            count += 1
-        if not elem.tail or not elem.tail.strip():
-            elem.tail = i
-            if more_sibs:
-                elem.tail += '\t'
-    else:
-        if level and (not elem.tail or not elem.tail.strip()):
-            elem.tail = i
-            if more_sibs:
-                elem.tail += '\t'
-
-
-def create_xml(xml_path, im, selections):
-    img_addr = xml_path[:-3] + 'jpg'
-    xml_addr = xml_path[:-3] + 'xml'
-
-    im_w, im_h, im_d = im.shape
-
-    annotation = ET.Element('annotation')
-    ET.SubElement(annotation, 'folder')
-    ET.SubElement(annotation, 'filename')
-    ET.SubElement(annotation, 'path')
-
-    source = ET.SubElement(annotation, 'source')
-    ET.SubElement(source, 'database').text = 'Unknown'
-
-    size = ET.SubElement(annotation, 'size')
-    ET.SubElement(size, 'width').text = str(im_w)
-    ET.SubElement(size, 'height').text = str(im_h)
-    ET.SubElement(size, 'depth').text = str(im_d)
-
-    ET.SubElement(annotation, 'segmented').text = '0'
-    tree = ET.ElementTree(annotation)
-    tree.write(xml_addr)
-
-    tree = ET.parse(xml_addr)
-    root = tree.getroot()
-
-    filename = os.path.basename(img_addr)
-    abs_path = os.path.abspath(img_addr)
-    splitted = os.path.split(abs_path)[0].split('\\')
-    last = splitted[len(splitted) - 1]
-
-    root.find('folder').text = last
-    root.find('filename').text = filename
-    root.find('path').text = abs_path
-
-    for selection in selections:
-        obj = ET.SubElement(root, 'object')
-
-        ET.SubElement(obj, 'name').text = 'cafe'
-        ET.SubElement(obj, 'pose').text = 'Unspecified'
-        ET.SubElement(obj, 'truncated').text = '0'
-        ET.SubElement(obj, 'difficult').text = '0'
-
-        bndbox = ET.SubElement(obj, 'bndbox')
-
-        xmin, ymin, xmax, ymax = selection
-
-        ET.SubElement(bndbox, 'xmin').text = str(xmin)
-        ET.SubElement(bndbox, 'ymin').text = str(ymin)
-        ET.SubElement(bndbox, 'xmax').text = str(xmax)
-        ET.SubElement(bndbox, 'ymax').text = str(ymax)
-
-    indent(root)
-    tree.write(xml_addr)
-
-
 def read_xml(xml_path):
     tree = ET.parse(xml_path)
     root = tree.getroot()
@@ -186,13 +105,13 @@ def generate_seg(image, shapes):
 
     for shape in shapes:
         def rescale_point(point):
-            x, y=point
-            x=int(x * im_w)
-            y=int(y * im_h)
+            x, y = point
+            x = int(x * im_w)
+            y = int(y * im_h)
             return x, y
 
-        points=[rescale_point(point) for point in shape['points']]
-        points=np.array(points)
+        points = [rescale_point(point) for point in shape['points']]
+        points = np.array(points)
 
         cv2.fillPoly(seg_map, [points], (1, 1, 1))
         cv2.polylines(seg_map, [points], True, (0, 0, 0), thickness=2)
@@ -204,64 +123,57 @@ def generate_seg(image, shapes):
 
 
 def prepare_image(image, final_size):
-    scale=final_size / min(image.shape[0], image.shape[1])
+    scale = final_size / min(image.shape[0], image.shape[1])
     return cv2.resize(src=image, dsize=None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
 
 
 def cut_image(image, channels=1):
-    cut=min(image.shape[0], image.shape[1])
+    cut = min(image.shape[0], image.shape[1])
 
-    dx=abs(cut - image.shape[1]) // 2
-    dy=abs(cut - image.shape[0]) // 2
+    dx = abs(cut - image.shape[1]) // 2
+    dy = abs(cut - image.shape[0]) // 2
 
-    image=image[dy:dy+cut, dx:dx+cut]
+    image = image[dy:dy+cut, dx:dx+cut]
     return np.reshape(image, (cut, cut, channels))
 
 
 def load(dirs, final_size=128):
-    data=[]
+    data = []
     for _dir in dirs:
-        addrs=glob.glob(os.path.join(_dir, '*.json'))
+        addrs = glob.glob(os.path.join(_dir, '*.json'))
         for addr in addrs:
             print(f'Loading data from: {addr}')
 
-            # image, bboxes = read_xml(addr)
+            # x, bboxes = read_xml(addr)
+            x, shapes = read_json(addr)
 
-            # image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-            # image = prepare_image(image, final_size)
-            # dmap = generate_dmap(image, bboxes)
+            x = cv2.cvtColor(x, cv2.COLOR_BGR2GRAY)
+            x = prepare_image(x, final_size)
 
-            # image = cut_image(image)
-            # dmap = cut_image(dmap)
+            # y = generate_dmap(image, bboxes)
+            y, w = generate_seg(x, shapes)
 
-            image, shapes=read_json(addr)
+            x = cut_image(x)
+            y = cut_image(y)
+            w = cut_image(w)
 
-            image=cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-            image=prepare_image(image, final_size)
-
-            seg_map, wei_map=generate_seg(image, shapes)
-
-            image=cut_image(image)
-            seg_map=cut_image(seg_map)
-            wei_map=cut_image(wei_map)
-
-            data.append([image, seg_map])
+            data.append([x, y])
 
     return data
 
 
 def load_images(dirs, final_size=128):
-    data=[]
+    data = []
     for _dir in dirs:
-        addrs=glob.glob(os.path.join(_dir, '*.jpg'))
+        addrs = glob.glob(os.path.join(_dir, '*.jpg'))
         for addr in addrs:
             print(f'Loading image: {addr}')
 
-            image=cv2.imread(addr)
-            image=cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            x = cv2.imread(addr)
+            x = cv2.cvtColor(x, cv2.COLOR_BGR2GRAY)
 
-            image=prepare_image(image, final_size)
-            image=cut_image(image)
-            data.append(image)
+            x = prepare_image(x, final_size)
+            x = cut_image(x)
+            data.append(x)
 
     return data

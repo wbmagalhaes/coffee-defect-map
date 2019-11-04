@@ -32,13 +32,13 @@ def int64_list_feature(value):
 def write(filename, data):
     writer = tf.data.experimental.TFRecordWriter(filename)
 
-    def serialize_example(image, segme):
-        image = tf.compat.as_bytes(image.tostring())
-        segme = tf.compat.as_bytes(segme.tostring())
+    def serialize_example(x, y):
+        x = tf.compat.as_bytes(x.tostring())
+        y = tf.compat.as_bytes(y.tostring())
 
         feature = {
-            'image': bytes_feature(image),
-            'segme': bytes_feature(segme)
+            'x': bytes_feature(x),
+            'y': bytes_feature(y)
         }
 
         example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
@@ -56,22 +56,22 @@ def read(filenames):
     raw_dataset = tf.data.TFRecordDataset(filenames)
 
     feature_description = {
-        'image': tf.io.FixedLenFeature([], tf.string),
-        'segme': tf.io.FixedLenFeature([], tf.string)
+        'x': tf.io.FixedLenFeature([], tf.string),
+        'y': tf.io.FixedLenFeature([], tf.string)
     }
 
     def parser(example_proto):
         features = tf.io.parse_single_example(example_proto, feature_description)
 
-        raw_image = tf.io.decode_raw(features['image'], tf.uint8)
-        raw_segme = tf.io.decode_raw(features['segme'], tf.float32)
+        raw_x = tf.io.decode_raw(features['x'], tf.uint8)
+        raw_y = tf.io.decode_raw(features['y'], tf.float32)
 
-        raw_image = tf.cast(raw_image, tf.float32)
+        raw_x = tf.cast(raw_x, tf.float32)
 
-        image = tf.reshape(raw_image, (256, 256, 1), name="image")
-        segme = tf.reshape(raw_segme, (256, 256, 1), name="segme")
+        x = tf.reshape(raw_x, (256, 256, 1), name="x")
+        y = tf.reshape(raw_y, (256, 256, 1), name="y")
 
-        return image, segme
+        return x, y
 
     dataset = raw_dataset.map(parser, num_parallel_calls=4)
     return dataset
