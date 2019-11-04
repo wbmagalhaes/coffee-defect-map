@@ -1,9 +1,9 @@
 import tensorflow as tf
 
-from CoffeeUNet18 import create_model
+from CoffeeUNet import create_model
 
 weights_path = './results/coffeeunet18.h5'
-out_path = './results/coffeeunet18_v1.1.tflite'
+out_path = './results/coffeeunet18_v0.1.tflite'
 
 model = create_model()
 model.load_weights(weights_path)

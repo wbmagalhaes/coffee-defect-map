@@ -1,6 +1,7 @@
 import os
 import cv2
 import glob
+import json
 
 import numpy as np
 import xml.etree.ElementTree as ET
@@ -126,8 +127,37 @@ def read_xml(xml_path):
     return image, bboxes
 
 
+def read_json(addr):
+    with open(addr) as json_file:
+        data = json.load(json_file)
+
+        dirname = os.path.dirname(addr)
+        filename = data['imagePath']
+
+        img_path = os.path.join(dirname, filename)
+        image = cv2.imread(img_path)
+
+        shapes = data['shapes']
+
+        def rescale_point(point, img):
+            x, y = point
+            x = x / image.shape[1]
+            y = y / image.shape[0]
+            return x, y
+
+        def rescale_shape(shape, img):
+            shape['points'] = [rescale_point(point, img) for point in shape['points']]
+            return shape
+
+        shapes = [rescale_shape(shape, image) for shape in shapes]
+
+    return image, shapes
+
+
 def generate_dmap(image, bboxes):
-    im_h, im_w = image.shape
+    im_h = image.shape[0]
+    im_w = image.shape[1]
+
     dmap = np.zeros((im_h, im_w), np.float32)
 
     for bbox in bboxes:
@@ -147,54 +177,91 @@ def generate_dmap(image, bboxes):
     return dmap
 
 
+def generate_seg(image, shapes):
+    im_h = image.shape[0]
+    im_w = image.shape[1]
+
+    seg_map = np.zeros_like(image, np.float32)
+    wei_map = np.ones_like(image, np.float32)
+
+    for shape in shapes:
+        def rescale_point(point):
+            x, y=point
+            x=int(x * im_w)
+            y=int(y * im_h)
+            return x, y
+
+        points=[rescale_point(point) for point in shape['points']]
+        points=np.array(points)
+
+        cv2.fillPoly(seg_map, [points], (1, 1, 1))
+        cv2.polylines(seg_map, [points], True, (0, 0, 0), thickness=2)
+
+        cv2.fillPoly(wei_map, [points], (2, 2, 2))
+        cv2.polylines(wei_map, [points], True, (10, 10, 10), thickness=3)
+
+    return seg_map, wei_map
+
+
 def prepare_image(image, final_size):
-    scale = final_size / min(image.shape[0], image.shape[1])
+    scale=final_size / min(image.shape[0], image.shape[1])
     return cv2.resize(src=image, dsize=None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
 
 
 def cut_image(image, channels=1):
-    cut = min(image.shape[0], image.shape[1])
+    cut=min(image.shape[0], image.shape[1])
 
-    dx = abs(cut - image.shape[1]) // 2
-    dy = abs(cut - image.shape[0]) // 2
+    dx=abs(cut - image.shape[1]) // 2
+    dy=abs(cut - image.shape[0]) // 2
 
-    image = image[dy:dy+cut, dx:dx+cut]
+    image=image[dy:dy+cut, dx:dx+cut]
     return np.reshape(image, (cut, cut, channels))
 
 
-def load(dirs, final_size=256):
-    data = []
+def load(dirs, final_size=128):
+    data=[]
     for _dir in dirs:
-        addrs = glob.glob(os.path.join(_dir, '*.xml'))
+        addrs=glob.glob(os.path.join(_dir, '*.json'))
         for addr in addrs:
             print(f'Loading data from: {addr}')
 
-            image, bboxes = read_xml(addr)
+            # image, bboxes = read_xml(addr)
 
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-            image = prepare_image(image, final_size)
-            dmap = generate_dmap(image, bboxes)
+            # image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            # image = prepare_image(image, final_size)
+            # dmap = generate_dmap(image, bboxes)
 
-            image = cut_image(image)
-            dmap = cut_image(dmap)
+            # image = cut_image(image)
+            # dmap = cut_image(dmap)
 
-            data.append([image, dmap])
+            image, shapes=read_json(addr)
+
+            image=cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            image=prepare_image(image, final_size)
+
+            seg_map, wei_map=generate_seg(image, shapes)
+
+            image=cut_image(image)
+            seg_map=cut_image(seg_map)
+            wei_map=cut_image(wei_map)
+
+            data.append([image, seg_map])
 
     return data
 
 
-def load_images(dirs, final_size=256):
-    data = []
+def load_images(dirs, final_size=128):
+    data=[]
     for _dir in dirs:
-        addrs = glob.glob(os.path.join(_dir, '*.jpg'))
+        addrs=glob.glob(os.path.join(_dir, '*.jpg'))
         for addr in addrs:
             print(f'Loading image: {addr}')
 
-            image = cv2.imread(addr)
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            image=cv2.imread(addr)
+            image=cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-            image = prepare_image(image, final_size)
-            image = cut_image(image)
+            image=prepare_image(image, final_size)
+            image=cut_image(image)
             data.append(image)
 
     return data

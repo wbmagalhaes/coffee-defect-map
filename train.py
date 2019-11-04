@@ -16,6 +16,7 @@ test_dataset = test_dataset.map(other.normalize, num_parallel_calls=4)
 
 # Apply augmentations
 train_dataset = augmentation.apply(train_dataset)
+test_dataset = augmentation.apply(test_dataset)
 
 # Set batchs
 train_dataset = train_dataset.repeat().shuffle(buffer_size=400).batch(16)
