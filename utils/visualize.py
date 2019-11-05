@@ -62,7 +62,17 @@ def plot_predictions(x_data, y_pred):
     plt.show()
 
 
-def show_combined(image, result, alpha=0.4):
+def stack_image(imgs, cols, rows):
+    imgs = np.split(imgs, rows)
+    rows = [np.vstack(img) for img in imgs]
+
+    return np.hstack(rows)
+
+
+def show_combined(images, results, alpha=0.4, cols=2, rows=2):
+    image = stack_image(images, cols, rows)
+    result = stack_image(results, cols, rows)
+
     result = np.squeeze(result)
 
     result = np.where(result > 0.5, 1., 0.)

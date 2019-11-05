@@ -122,8 +122,8 @@ def generate_seg(image, shapes):
     return seg_map, wei_map
 
 
-def resize_image(image, final_size):
-    scale = final_size / min(image.shape[0], image.shape[1])
+def resize_image(image, size):
+    scale = size / min(image.shape[0], image.shape[1])
     return cv2.resize(src=image, dsize=None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
 
 
@@ -162,13 +162,26 @@ def load_json(dirs, final_size=128):
     return data
 
 
-def prepare_image(original_img, final_size=128):
-    color_image = crop_image(original_img, channels=3)
-    color_image = color_image.astype(np.float32) / 255.
+def split_image(image, cols=2, rows=2):
+    images = []
+    columns = np.hsplit(image, cols)
+    for c in columns:
+        imgs = np.vsplit(c, rows)
+        for img in imgs:
+            images.append(img)
 
-    grey_image = resize_image(color_image, final_size=final_size)
-    grey_image = cv2.cvtColor(grey_image, cv2.COLOR_BGR2GRAY)
+    return np.array(images)
 
-    grey_image = np.reshape(grey_image, (1, final_size, final_size, 1))
 
-    return color_image, grey_image
+def prepare_image(original_img, size=256, cols=2, rows=2):
+    color_img = crop_image(original_img, channels=3)
+    color_img = color_img.astype(np.float32) / 255.
+
+    grey_img = resize_image(color_img, size=size)
+    grey_img = cv2.cvtColor(grey_img, cv2.COLOR_BGR2GRAY)
+    grey_img = np.reshape(grey_img, (size, size, 1))
+
+    color_imgs = split_image(color_img, cols=cols, rows=rows)
+    grey_imgs = split_image(grey_img, cols=cols, rows=rows)
+
+    return color_imgs, grey_imgs
