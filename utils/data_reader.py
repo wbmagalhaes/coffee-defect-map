@@ -122,22 +122,22 @@ def generate_seg(image, shapes):
     return seg_map, wei_map
 
 
-def prepare_image(image, final_size):
+def resize_image(image, final_size):
     scale = final_size / min(image.shape[0], image.shape[1])
     return cv2.resize(src=image, dsize=None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
 
 
-def cut_image(image, channels=1):
-    cut = min(image.shape[0], image.shape[1])
+def crop_image(image, channels=1):
+    size = min(image.shape[0], image.shape[1])
 
-    dx = abs(cut - image.shape[1]) // 2
-    dy = abs(cut - image.shape[0]) // 2
+    dx = abs(size - image.shape[1]) // 2
+    dy = abs(size - image.shape[0]) // 2
 
-    image = image[dy:dy+cut, dx:dx+cut]
-    return np.reshape(image, (cut, cut, channels))
+    image = image[dy:dy + size, dx:dx + size]
+    return np.reshape(image, (size, size, channels))
 
 
-def load(dirs, final_size=128):
+def load_json(dirs, final_size=128):
     data = []
     for _dir in dirs:
         addrs = glob.glob(os.path.join(_dir, '*.json'))
@@ -148,32 +148,27 @@ def load(dirs, final_size=128):
             x, shapes = read_json(addr)
 
             x = cv2.cvtColor(x, cv2.COLOR_BGR2GRAY)
-            x = prepare_image(x, final_size)
+            x = resize_image(x, final_size)
 
             # y = generate_dmap(image, bboxes)
             y, w = generate_seg(x, shapes)
 
-            x = cut_image(x)
-            y = cut_image(y)
-            w = cut_image(w)
+            x = crop_image(x)
+            y = crop_image(y)
+            w = crop_image(w)
 
             data.append([x, y])
 
     return data
 
 
-def load_images(dirs, final_size=128):
-    data = []
-    for _dir in dirs:
-        addrs = glob.glob(os.path.join(_dir, '*.jpg'))
-        for addr in addrs:
-            print(f'Loading image: {addr}')
+def prepare_image(original_img, final_size=128):
+    color_image = crop_image(original_img, channels=3)
+    color_image = color_image.astype(np.float32) / 255.
 
-            x = cv2.imread(addr)
-            x = cv2.cvtColor(x, cv2.COLOR_BGR2GRAY)
+    grey_image = resize_image(color_image, final_size=final_size)
+    grey_image = cv2.cvtColor(grey_image, cv2.COLOR_BGR2GRAY)
 
-            x = prepare_image(x, final_size)
-            x = cut_image(x)
-            data.append(x)
+    grey_image = np.reshape(grey_image, (1, final_size, final_size, 1))
 
-    return data
+    return color_image, grey_image

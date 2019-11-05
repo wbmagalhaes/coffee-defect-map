@@ -1,10 +1,8 @@
 import cv2
 
-import numpy as np
-
 from CoffeeUNet import create_model
 
-from utils import data_reader
+from utils import data_reader, visualize
 
 IMAGE_SIZE = 128
 RESULT_ALPHA = 0.4
@@ -21,22 +19,10 @@ model.load_weights('./results/coffeeunet18.h5')
 while(1):
     _, original_img = video.read()
 
-    color_image = data_reader.cut_image(original_img, channels=3)
-    color_image = color_image.astype(np.float32) / 255.
-
-    grey_image = data_reader.prepare_image(color_image, final_size=IMAGE_SIZE)
-    grey_image = cv2.cvtColor(grey_image, cv2.COLOR_BGR2GRAY)
-    grey_image = np.reshape(grey_image, (1, IMAGE_SIZE, IMAGE_SIZE, 1))
-
+    color_image, grey_image = data_reader.prepare_image(original_img, IMAGE_SIZE)
     result = model.predict(grey_image)
-    result = np.squeeze(result[0])
+    show = visualize.show_combined(color_image, result[0], RESULT_ALPHA)
 
-    result = np.where(result > 0.5, 1., 0.)
-    result = np.stack([np.zeros_like(result), np.zeros_like(result), result], axis=-1)
-    result = cv2.resize(src=result, dsize=(color_image.shape[0], color_image.shape[1]))
-
-    show = color_image + result * RESULT_ALPHA
-    show = np.clip(show, 0, 1)
     cv2.imshow("Result", show)
 
     k = cv2.waitKey(30) & 0xff
