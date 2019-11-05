@@ -6,8 +6,6 @@ from CoffeeUNet import create_model
 
 from utils import data_reader, visualize
 
-import matplotlib.pyplot as plt
-
 IMAGE_SIZE = 128
 RESULT_ALPHA = 0.4
 
@@ -28,8 +26,7 @@ for _dir in sample_dirs:
 
         color_image, grey_image = data_reader.prepare_image(original_img, IMAGE_SIZE)
         result = model.predict(grey_image)
-        show = visualize.show_combined(color_image, result[0], RESULT_ALPHA, True)
+        show = visualize.show_combined(color_image, result[0], RESULT_ALPHA)
 
-        plt.imshow(show)
-        plt.axis('off')
-        plt.show()
+        cv2.imshow("Result", show)
+        cv2.waitKey()

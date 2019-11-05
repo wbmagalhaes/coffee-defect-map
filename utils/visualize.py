@@ -62,16 +62,12 @@ def plot_predictions(x_data, y_pred):
     plt.show()
 
 
-def show_combined(image, result, alpha=0.4, rgb=False):
+def show_combined(image, result, alpha=0.4):
     result = np.squeeze(result)
 
     result = np.where(result > 0.5, 1., 0.)
     result = np.stack([np.zeros_like(result), np.zeros_like(result), result], axis=-1)
     result = cv2.resize(src=result, dsize=(image.shape[0], image.shape[1]))
-
-    if rgb:
-        result = cv2.cvtColor(result, cv2.COLOR_BGR2RGB)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
     show = image + result * alpha
     show = np.clip(show, 0, 1)
