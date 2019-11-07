@@ -25,8 +25,8 @@ def conv2d_block(x, filters):
         kernel_initializer=kernel_initializer,
         kernel_regularizer=kernel_regularizer,
         bias_initializer=bias_initializer,
-        activation=tf.keras.layers.LeakyReLU(alpha=leaky_relu_alpha),
         padding='same')(x)
+    x = tf.keras.layers.LeakyReLU(alpha=leaky_relu_alpha)(x)
     x = tf.keras.layers.BatchNormalization()(x)
 
     # x = tf.keras.layers.Dropout(rate=drop_rate)(x)
@@ -37,8 +37,8 @@ def conv2d_block(x, filters):
         kernel_initializer=kernel_initializer,
         kernel_regularizer=kernel_regularizer,
         bias_initializer=bias_initializer,
-        activation=tf.keras.layers.LeakyReLU(alpha=leaky_relu_alpha),
         padding='same')(x)
+    x = tf.keras.layers.LeakyReLU(alpha=leaky_relu_alpha)(x)
     x = tf.keras.layers.BatchNormalization()(x)
 
     return x

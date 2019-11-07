@@ -1,8 +1,9 @@
 import cv2
 
-from CoffeeUNet import create_model
+from utils import data_reader, visualize, reload_model
 
-from utils import data_reader, visualize
+model_name = 'CoffeeUNet18'
+epoch = 0
 
 IMAGE_SIZE = 256
 RESULT_ALPHA = 0.4
@@ -13,8 +14,7 @@ video.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 video.set(cv2.CAP_PROP_FPS, 30)
 video.set(cv2.CAP_PROP_AUTOFOCUS, False)
 
-model = create_model()
-model.load_weights('./results/coffeeunet18.h5')
+model = reload_model.from_json(model_name, epoch)
 
 while(1):
     _, original_img = video.read()

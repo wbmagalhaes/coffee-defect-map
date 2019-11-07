@@ -16,3 +16,8 @@ class JaccardDistance(tf.keras.losses.Loss):
         sum_ = K.sum(K.abs(y_true) + K.abs(y_pred), axis=-1)
         jac = (intersection + self.smooth) / (sum_ - intersection + self.smooth)
         return (1 - jac) * self.smooth
+
+    def get_config(self):
+        config = super(JaccardDistance, self).get_config()
+        config.update({'smooth': self.smooth})
+        return config

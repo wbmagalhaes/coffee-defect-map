@@ -1,14 +1,14 @@
-from CoffeeUNet import create_model
+from utils import tfrecords, other, visualize, reload_model
 
-from utils import tfrecords, other, visualize
+model_name = 'CoffeeUNet18'
+epoch = 0
 
 dataset = tfrecords.read(['./data/data_test.tfrecord'])
 dataset = dataset.map(other.resize).map(other.normalize)
 
 x_data, y_true = zip(*[data for data in dataset])
 
-model = create_model()
-model.load_weights('./results/coffeeunet18.h5')
+model = reload_model.from_json(model_name, epoch)
 
 y_pred = model.predict(dataset.batch(32))
 

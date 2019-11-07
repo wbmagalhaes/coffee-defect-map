@@ -21,3 +21,8 @@ class IoU(tf.keras.metrics.Mean):
         values = (intersection + self.smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) - intersection + self.smooth)
 
         return super(IoU, self).update_state(values, sample_weight=sample_weight)
+
+    def get_config(self):
+        config = super(IoU, self).get_config()
+        config.update({'smooth': self.smooth})
+        return config

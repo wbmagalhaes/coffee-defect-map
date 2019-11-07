@@ -1,1 +1,1 @@
-__all__ = ['augmentation', 'data_reader', 'density_map', 'tfrecords', 'visualize', 'other', 'labelmap', 'losses', 'metrics']
+__all__ = ['augmentation', 'data_reader', 'density_map', 'tfrecords', 'visualize', 'other', 'labelmap', 'losses', 'metrics', 'reload_model']

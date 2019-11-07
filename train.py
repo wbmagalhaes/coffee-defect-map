@@ -1,9 +1,8 @@
 import tensorflow as tf
-
 import os
+import json
 
 from utils import tfrecords, augmentation, other, visualize, losses, metrics
-
 from CoffeeUNet import create_model
 
 # Load train data
@@ -30,14 +29,24 @@ model_name = 'CoffeeUNet18'
 model = create_model()
 model.compile(
     optimizer=tf.keras.optimizers.Adam(lr=1e-4),
-    loss={
-        'map_output': losses.JaccardDistance(smooth=100)
-    },
-    metrics={
-        'map_output': [metrics.IoU(smooth=1.)]
-    }
+    loss=losses.JaccardDistance(smooth=100),
+    metrics=[metrics.IoU(smooth=1.)]
 )
 model.summary()
+
+# Save model
+savedir = os.path.join('results', model_name)
+if not os.path.isdir(savedir):
+    os.mkdir(savedir)
+
+json_config = model.to_json()
+with open(savedir + '/model.json', 'w') as f:
+    json.dump(json_config, f)
+
+# Save weights
+model.save_weights(savedir + '/epoch-000.ckpt')
+filepath = savedir + '/epoch-{epoch:03d}.ckpt'
+checkpoint = tf.keras.callbacks.ModelCheckpoint(filepath, save_weights_only=True, verbose=1, period=50)
 
 # Tensorboard visualization
 logdir = os.path.join('logs', model_name)
@@ -58,15 +67,5 @@ history = model.fit(
     validation_data=test_dataset,
     validation_freq=1,
     validation_steps=5,
-    callbacks=[tb_callback]
+    callbacks=[checkpoint, tb_callback]
 )
-
-# Save model
-model.save(
-    model,
-    filepath='./results/coffeeunet18.h5',
-    overwrite=True
-)
-
-# Save weights
-# model.save_weights('./results/coffeeunet18.h5', overwrite=True)
