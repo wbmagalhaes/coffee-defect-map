@@ -51,7 +51,7 @@ def create_model(
         num_classes=1,
         output_activation='sigmoid'):
 
-    image_input = tf.keras.Input(shape=input_shape, name='img_input')
+    image_input = tf.keras.Input(shape=input_shape, name='img_input', dtype=tf.float32)
     x = tf.keras.layers.BatchNormalization()(image_input)
 
     down_layers = []
