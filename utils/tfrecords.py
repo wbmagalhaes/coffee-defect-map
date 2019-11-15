@@ -52,7 +52,7 @@ def write(filename, data):
     writer.write(dataset)
 
 
-def read(filenames):
+def read(filenames, im_size=256):
     raw_dataset = tf.data.TFRecordDataset(filenames)
 
     feature_description = {
@@ -68,8 +68,8 @@ def read(filenames):
 
         raw_x = tf.cast(raw_x, tf.float32)
 
-        x = tf.reshape(raw_x, (256, 256, 1), name="x")
-        y = tf.reshape(raw_y, (256, 256, 1), name="y")
+        x = tf.reshape(raw_x, (im_size, im_size, 1), name="x")
+        y = tf.reshape(raw_y, (im_size, im_size, 1), name="y")
 
         return x, y
 
