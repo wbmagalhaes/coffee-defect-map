@@ -14,8 +14,8 @@ training_percentage = 0.8
 if not os.path.isdir(data_dir):
     os.mkdir(data_dir)
 
-train_path = os.path.join(data_dir, 'data_train.tfrecord')
-test_path = os.path.join(data_dir, 'data_test.tfrecord')
+train_path = os.path.join(data_dir, 'segmentation_train.tfrecord')
+test_path = os.path.join(data_dir, 'segmentation_test.tfrecord')
 
 data = data_reader.load_json(img_dirs, final_size=512)
 shuffle(data)

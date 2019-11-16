@@ -6,11 +6,11 @@ from utils import tfrecords, augmentation, other, visualize, losses, metrics
 from CoffeeUNet import create_model
 
 # Load train data
-train_dataset = tfrecords.read(['./data/data_train.tfrecord'])
+train_dataset = tfrecords.read(['./data/segmentation_train.tfrecord'])
 train_dataset = train_dataset.map(other.normalize, num_parallel_calls=4)
 
 # Load test data
-test_dataset = tfrecords.read(['./data/data_test.tfrecord'])
+test_dataset = tfrecords.read(['./data/segmentation_test.tfrecord'])
 test_dataset = test_dataset.map(other.normalize, num_parallel_calls=4)
 
 # Apply augmentations
