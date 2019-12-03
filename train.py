@@ -2,24 +2,26 @@ import tensorflow as tf
 import os
 import json
 
-from utils import tfrecords, augmentation, other, visualize, losses, metrics
+from utils import tfrecords, visualize, losses, metrics
+from utils.augmentation import rotate, flip, crop, gaussian, clip01
+
 from CoffeeUNet import create_model
 
-# Load train data
-train_dataset = tfrecords.read(['./data/segmentation_train.tfrecord'], im_size=512)
-train_dataset = train_dataset.map(other.normalize, num_parallel_calls=4)
-
-# Load test data
-test_dataset = tfrecords.read(['./data/segmentation_test.tfrecord'], im_size=512)
-test_dataset = test_dataset.map(other.normalize, num_parallel_calls=4)
+# Load train/test data
+train_ds = tfrecords.read(['./data/segmentation_train.tfrecord'], im_size=512)
+test_ds = tfrecords.read(['./data/segmentation_test.tfrecord'], im_size=512)
+test_ds = crop(test_ds, im_size=256)
 
 # Apply augmentations
-train_dataset = augmentation.apply(train_dataset, im_size=256)
-test_dataset = augmentation.apply(test_dataset, im_size=256)
+train_ds = crop(train_ds, im_size=256)
+train_ds = gaussian(train_ds, stddev=0.01)
+train_ds = rotate(train_ds)
+train_ds = flip(train_ds)
+train_ds = clip01(train_ds)
 
 # Set batchs
-train_dataset = train_dataset.repeat().shuffle(buffer_size=400).batch(16)
-test_dataset = test_dataset.repeat().shuffle(buffer_size=400).batch(16)
+train_ds = train_ds.repeat().shuffle(buffer_size=400).batch(16)
+test_ds = test_ds.repeat().shuffle(buffer_size=400).batch(16)
 
 # Plot some images
 # visualize.plot_dataset(train_dataset)
@@ -65,11 +67,11 @@ tb_callback = tf.keras.callbacks.TensorBoard(
 
 # Training
 history = model.fit(
-    train_dataset,
+    train_ds,
     steps_per_epoch=20,
     epochs=1,
     verbose=1,
-    validation_data=test_dataset,
+    validation_data=test_ds,
     validation_freq=1,
     validation_steps=5,
     callbacks=[checkpoint, tb_callback]

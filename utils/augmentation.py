@@ -1,44 +1,57 @@
 import tensorflow as tf
-import numpy as np
-
-from utils import other
-
 import random
 
 
-def apply(dataset, im_size=256, stddev=0.04):
-    def rotate(x, y):
+def rotate(dataset):
+    def apply(x, y):
         coin = tf.random.uniform(shape=[], minval=0, maxval=4, dtype=tf.int32)
         x = tf.image.rot90(x, coin)
         y = tf.image.rot90(y, coin)
         return x, y
 
-    def flip_h(x, y):
+    return dataset.map(apply, num_parallel_calls=4)
+
+
+def flip(dataset):
+    def horizontal(x, y):
         seed = int(random.random() * 1234.)
         x = tf.image.random_flip_left_right(x, seed=seed)
         y = tf.image.random_flip_left_right(y, seed=seed)
         return x, y
 
-    def flip_v(x, y):
+    dataset = dataset.map(horizontal, num_parallel_calls=4)
+
+    def vertical(x, y):
         seed = int(random.random() * 1234.)
         x = tf.image.random_flip_up_down(x, seed=seed)
         y = tf.image.random_flip_up_down(y, seed=seed)
         return x, y
 
-    def crop(x, y):
+    return dataset.map(vertical, num_parallel_calls=4)
+
+
+def crop(dataset, im_size=256):
+    def apply(x, y):
         seed = int(random.random() * 1234.)
         x = tf.image.random_crop(x, size=[im_size, im_size, 1], seed=seed)
         y = tf.image.random_crop(y, size=[im_size, im_size, 1], seed=seed)
         return x, y
 
-    def gaussian(x, y):
+    return dataset.map(apply, num_parallel_calls=4)
+
+
+def gaussian(dataset, stddev=1/255):
+    def apply(x, y):
         noise = tf.random.normal(shape=tf.shape(x), mean=0.0, stddev=stddev, dtype=tf.float32)
         x = x + noise
         return x, y
 
-    types = [crop, rotate, flip_h, flip_v, gaussian]
-    for t in types:
-        dataset = dataset.map(t, num_parallel_calls=4)
+    return dataset.map(apply, num_parallel_calls=4)
 
-    dataset = dataset.map(other.clip01, num_parallel_calls=4)
-    return dataset
+
+def clip01(dataset):
+    def apply(x, y):
+        x = tf.clip_by_value(x, 0, 1)
+        return x, y
+
+    return dataset.map(apply, num_parallel_calls=4)

@@ -1,11 +1,11 @@
-from utils import tfrecords, other, visualize, reload_model
+from utils import tfrecords, visualize, reload_model
+from utils.augmentation import crop
 
 model_name = 'CoffeeUNet18'
 epoch = 0
 
 dataset = tfrecords.read(['./data/segmentation_test.tfrecord'], im_size=512)
-dataset = dataset.map(other.normalize)
-dataset = other.resize(dataset, im_size=256)
+dataset = crop(dataset, im_size=256)
 
 x_data, y_true = zip(*[data for data in dataset])
 

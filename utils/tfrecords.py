@@ -67,6 +67,7 @@ def read(filenames, im_size=256):
         raw_y = tf.io.decode_raw(features['y'], tf.float32)
 
         raw_x = tf.cast(raw_x, tf.float32)
+        raw_x = raw_x / 255.
 
         x = tf.reshape(raw_x, (im_size, im_size, 1), name="x")
         y = tf.reshape(raw_y, (im_size, im_size, 1), name="y")
