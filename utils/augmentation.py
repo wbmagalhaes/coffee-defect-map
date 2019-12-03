@@ -33,7 +33,7 @@ def apply(dataset, im_size=256, stddev=0.04):
 
     def gaussian(x, y):
         noise = tf.random.normal(shape=tf.shape(x), mean=0.0, stddev=stddev, dtype=tf.float32)
-        x = x + noise * (1.0 - y)
+        x = x + noise
         return x, y
 
     types = [crop, rotate, flip_h, flip_v, gaussian]
