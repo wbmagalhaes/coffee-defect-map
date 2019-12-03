@@ -9,5 +9,5 @@ def from_json(model_name, epoch, resultdir='./results'):
     model = tf.keras.models.model_from_json(json_config)
 
     # Recover weights
-    model.load_weights(f'{resultdir}/{model_name}/epoch-{epoch:03d}.ckpt')
+    model.load_weights(f'{resultdir}/{model_name}/epoch-{epoch:04d}.h5')
     return model

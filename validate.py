@@ -3,8 +3,9 @@ from utils import tfrecords, other, visualize, reload_model
 model_name = 'CoffeeUNet18'
 epoch = 0
 
-dataset = tfrecords.read(['./data/segmentation_test.tfrecord'])
-dataset = other.resize(dataset).map(other.normalize)
+dataset = tfrecords.read(['./data/segmentation_test.tfrecord'], im_size=512)
+dataset = dataset.map(other.normalize)
+dataset = other.resize(dataset, im_size=256)
 
 x_data, y_true = zip(*[data for data in dataset])
 

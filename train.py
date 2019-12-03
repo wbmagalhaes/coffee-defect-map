@@ -6,16 +6,16 @@ from utils import tfrecords, augmentation, other, visualize, losses, metrics
 from CoffeeUNet import create_model
 
 # Load train data
-train_dataset = tfrecords.read(['./data/segmentation_train.tfrecord'])
+train_dataset = tfrecords.read(['./data/segmentation_train.tfrecord'], im_size=512)
 train_dataset = train_dataset.map(other.normalize, num_parallel_calls=4)
 
 # Load test data
-test_dataset = tfrecords.read(['./data/segmentation_test.tfrecord'])
+test_dataset = tfrecords.read(['./data/segmentation_test.tfrecord'], im_size=512)
 test_dataset = test_dataset.map(other.normalize, num_parallel_calls=4)
 
 # Apply augmentations
-train_dataset = augmentation.apply(train_dataset)
-test_dataset = augmentation.apply(test_dataset)
+train_dataset = augmentation.apply(train_dataset, im_size=256)
+test_dataset = augmentation.apply(test_dataset, im_size=256)
 
 # Set batchs
 train_dataset = train_dataset.repeat().shuffle(buffer_size=400).batch(16)
@@ -26,7 +26,7 @@ test_dataset = test_dataset.repeat().shuffle(buffer_size=400).batch(16)
 
 # Define model
 model_name = 'CoffeeUNet18'
-model = create_model()
+model = create_model(input_shape=(256, 256, 1))
 model.compile(
     optimizer=tf.keras.optimizers.Adam(lr=1e-4),
     loss=losses.JaccardDistance(smooth=100),
@@ -44,9 +44,14 @@ with open(savedir + '/model.json', 'w') as f:
     json.dump(json_config, f)
 
 # Save weights
-model.save_weights(savedir + '/epoch-000.ckpt')
-filepath = savedir + '/epoch-{epoch:03d}.ckpt'
-checkpoint = tf.keras.callbacks.ModelCheckpoint(filepath, save_weights_only=True, verbose=1, period=50)
+model.save_weights(savedir + '/epoch-0000.h5')
+filepath = savedir + '/epoch-{epoch:04d}.h5'
+checkpoint = tf.keras.callbacks.ModelCheckpoint(
+    filepath,
+    save_weights_only=True,
+    verbose=1,
+    period=1
+)
 
 # Tensorboard visualization
 logdir = os.path.join('logs', model_name)
@@ -62,7 +67,7 @@ tb_callback = tf.keras.callbacks.TensorBoard(
 history = model.fit(
     train_dataset,
     steps_per_epoch=20,
-    epochs=400,
+    epochs=1,
     verbose=1,
     validation_data=test_dataset,
     validation_freq=1,
