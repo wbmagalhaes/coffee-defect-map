@@ -4,7 +4,7 @@ model_name = 'CoffeeUNet18'
 epoch = 0
 
 dataset = tfrecords.read(['./data/segmentation_test.tfrecord'])
-dataset = dataset.map(other.resize).map(other.normalize)
+dataset = other.resize(dataset).map(other.normalize)
 
 x_data, y_true = zip(*[data for data in dataset])
 
