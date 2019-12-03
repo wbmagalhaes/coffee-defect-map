@@ -37,7 +37,6 @@ def apply(dataset, im_size=256, stddev=0.04):
         return x, y
 
     types = [crop, rotate, flip_h, flip_v, gaussian]
-
     for t in types:
         dataset = dataset.map(t, num_parallel_calls=4)
 
