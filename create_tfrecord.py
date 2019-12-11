@@ -4,7 +4,10 @@ from utils import data_reader, tfrecords
 from random import shuffle
 
 img_dirs = [
-    'C:/Users/Usuario/Desktop/cafe_imgs/segmentation_imgs'
+    'C:/Users/Usuario/Desktop/cafe_imgs/segmentation_imgs',
+    'C:/Users/Usuario/Desktop/cafe_imgs/segmentation_imgs/classificados/ardido',
+    'C:/Users/Usuario/Desktop/cafe_imgs/segmentation_imgs/classificados/brocado',
+    'C:/Users/Usuario/Desktop/cafe_imgs/segmentation_imgs/classificados/chocho'
 ]
 
 data_dir = './data'

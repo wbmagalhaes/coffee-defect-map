@@ -11,4 +11,4 @@ ds = clip01(ds)
 
 ds = ds.shuffle(buffer_size=400).batch(4)
 
-visualize.plot_ds(ds)
+visualize.plot_dataset(ds)
