@@ -13,8 +13,8 @@ img_dirs = [
     'C:/Users/Usuario/Desktop/cafe_imgs/segmentation_imgs/classificados/marinheiro',
     'C:/Users/Usuario/Desktop/cafe_imgs/segmentation_imgs/classificados/normal',
     'C:/Users/Usuario/Desktop/cafe_imgs/segmentation_imgs/classificados/preto'
-    # 'C:/Users/Usuario/Desktop/cafe_imgs/segmentation_imgs/classificados/quebrado',
-    # 'C:/Users/Usuario/Desktop/cafe_imgs/segmentation_imgs/classificados/verde'
+    'C:/Users/Usuario/Desktop/cafe_imgs/segmentation_imgs/classificados/quebrado',
+    'C:/Users/Usuario/Desktop/cafe_imgs/segmentation_imgs/classificados/verde'
 ]
 
 data_dir = './data'
