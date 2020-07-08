@@ -4,8 +4,7 @@ import tensorflow as tf
 kernel_initializer = 'he_normal'
 kernel_regularizer = tf.keras.regularizers.l2(0.01)
 bias_initializer = tf.keras.initializers.Constant(value=0.1)
-leaky_relu_alpha = 0.2
-drop_rate = 0.25
+leaky_relu_alpha = 0.02
 
 
 def upsample(x, filters):
@@ -28,8 +27,6 @@ def conv2d_block(x, filters):
         padding='same')(x)
     x = tf.keras.layers.LeakyReLU(alpha=leaky_relu_alpha)(x)
     x = tf.keras.layers.BatchNormalization()(x)
-
-    # x = tf.keras.layers.Dropout(rate=drop_rate)(x)
 
     x = tf.keras.layers.Conv2D(
         filters=filters,
@@ -63,7 +60,6 @@ def create_model(
         filters *= 2
 
     x = conv2d_block(x, filters=filters)
-    x = tf.keras.layers.Dropout(rate=drop_rate)(x)
 
     for conv in reversed(down_layers):
         filters //= 2

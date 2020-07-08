@@ -4,17 +4,17 @@ from utils import data_reader, tfrecords
 from random import shuffle
 
 img_dirs = [
-    'C:/Users/Usuario/Desktop/cafe_imgs/segmentation_imgs',
-    'C:/Users/Usuario/Desktop/cafe_imgs/segmentation_imgs/classificados/ardido',
-    'C:/Users/Usuario/Desktop/cafe_imgs/segmentation_imgs/classificados/brocado',
-    'C:/Users/Usuario/Desktop/cafe_imgs/segmentation_imgs/classificados/chocho',
-    'C:/Users/Usuario/Desktop/cafe_imgs/segmentation_imgs/classificados/coco',
-    'C:/Users/Usuario/Desktop/cafe_imgs/segmentation_imgs/classificados/concha',
-    'C:/Users/Usuario/Desktop/cafe_imgs/segmentation_imgs/classificados/marinheiro',
-    'C:/Users/Usuario/Desktop/cafe_imgs/segmentation_imgs/classificados/normal',
-    'C:/Users/Usuario/Desktop/cafe_imgs/segmentation_imgs/classificados/preto'
-    'C:/Users/Usuario/Desktop/cafe_imgs/segmentation_imgs/classificados/quebrado',
-    'C:/Users/Usuario/Desktop/cafe_imgs/segmentation_imgs/classificados/verde'
+    # 'E:/William/Documents/Mestrado/cafe_imgs/segmentation_imgs',
+    'E:/William/Documents/Mestrado/cafe_imgs/segmentation_imgs/classificados/ardido',
+    'E:/William/Documents/Mestrado/cafe_imgs/segmentation_imgs/classificados/brocado',
+    # 'E:/William/Documents/Mestrado/cafe_imgs/segmentation_imgs/classificados/chocho',
+    # 'E:/William/Documents/Mestrado/cafe_imgs/segmentation_imgs/classificados/coco',
+    # 'E:/William/Documents/Mestrado/cafe_imgs/segmentation_imgs/classificados/concha',
+    'E:/William/Documents/Mestrado/cafe_imgs/segmentation_imgs/classificados/marinheiro',
+    'E:/William/Documents/Mestrado/cafe_imgs/segmentation_imgs/classificados/normal',
+    'E:/William/Documents/Mestrado/cafe_imgs/segmentation_imgs/classificados/preto'
+    # 'E:/William/Documents/Mestrado/cafe_imgs/segmentation_imgs/classificados/quebrado',
+    'E:/William/Documents/Mestrado/cafe_imgs/segmentation_imgs/classificados/verde'
 ]
 
 data_dir = './data'

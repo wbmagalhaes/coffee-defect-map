@@ -14,17 +14,17 @@ test_ds = crop(test_ds, im_size=256)
 
 # Apply augmentations
 train_ds = crop(train_ds, im_size=256)
-train_ds = gaussian(train_ds, stddev=0.01)
 train_ds = rotate(train_ds)
 train_ds = flip(train_ds)
 train_ds = clip01(train_ds)
 
 # Set batchs
-train_ds = train_ds.repeat().shuffle(buffer_size=400).batch(16)
-test_ds = test_ds.repeat().shuffle(buffer_size=400).batch(16)
+batch_size = 16
+train_ds = train_ds.repeat().shuffle(buffer_size=400).batch(batch_size)
+test_ds = test_ds.repeat().shuffle(buffer_size=400).batch(batch_size)
 
 # Plot some images
-# visualize.plot_dataset(train_dataset)
+visualize.plot_dataset(train_ds)
 
 # Define model
 model_name = 'CoffeeUNet18'
