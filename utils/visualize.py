@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def plot_image(img, true=None, pred=None):
+def plot_image(img, true=None, pred=None, cmap='jet'):
     img = np.squeeze(img)
 
     n = 1
@@ -26,31 +26,31 @@ def plot_image(img, true=None, pred=None):
         i += 1
         ax = fig.add_subplot(1, n, i)
         ax.text(0, -3, 'Target', fontsize=10)
-        ax.imshow(true, cmap='jet')
+        ax.imshow(true, cmap=cmap)
         ax.axis('off')
 
     if not pred is None:
         i += 1
         ax = fig.add_subplot(1, n, i)
         ax.text(0, -3, 'Prediction', fontsize=10)
-        ax.imshow(pred, cmap='jet')
+        ax.imshow(pred, cmap=cmap)
         ax.axis('off')
 
 
-def plot_dataset(dataset):
+def plot_dataset(dataset, cmap='jet'):
     for data in dataset:
         imgs, maps = data
 
         for img, true in zip(imgs, maps):
-            plot_image(img, true=true)
+            plot_image(img, true=true, cmap=cmap)
 
         plt.show()
         break
 
 
-def plot_images(x_data, y_true, y_pred):
+def plot_images(x_data, y_true, y_pred, cmap='jet'):
     for img, true, pred in zip(x_data, y_true, y_pred):
-        plot_image(img, true=true, pred=pred)
+        plot_image(img, true=true, pred=pred, cmap=cmap)
 
     plt.show()
 

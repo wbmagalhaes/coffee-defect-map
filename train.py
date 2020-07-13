@@ -27,8 +27,18 @@ test_ds = test_ds.repeat().shuffle(buffer_size=400).batch(batch_size)
 visualize.plot_dataset(train_ds)
 
 # Define model
-model_name = 'CoffeeUNet18'
-model = create_model(input_shape=(256, 256, 1))
+model_name = 'CoffeeUNet10'
+model = create_model(
+    input_shape=(256, 256, 1),
+    num_layers=2,
+    filters=16,
+    num_classes=1,
+    kernel_initializer='he_normal',
+    kernel_regularizer=tf.keras.regularizers.l2(0.01),
+    bias_initializer=tf.keras.initializers.Constant(value=0.1),
+    leaky_relu_alpha=0.02,
+    output_activation='sigmoid')
+
 model.compile(
     optimizer=tf.keras.optimizers.Adam(lr=1e-4),
     loss=losses.JaccardDistance(smooth=100),
