@@ -50,7 +50,7 @@ def split_data(path, data, num):
     for i in range(0, num + 1):
         splitted = data[size * i:size * (i + 1)]
         if len(splitted) > 0:
-            tfrecords.write(f"{path}_{i}.tfrecords", splitted)
+            tfrecords.write(f"{path}_{i}.tfrecord", splitted)
 
 
 print('Writing tfrecords...')
